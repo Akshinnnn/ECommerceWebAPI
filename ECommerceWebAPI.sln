@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Presentation", "Presentation\Presentation.csproj", "{90D30F21-4392-479F-BE18-F9C341F32A90}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Data", "Data\Data.csproj", "{5A529951-EC2A-4737-9122-9F45F3BB31C5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logic", "Logic\Logic.csproj", "{97F8D4E8-4955-4771-AC0D-29058887A3A7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{90D30F21-4392-479F-BE18-F9C341F32A90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90D30F21-4392-479F-BE18-F9C341F32A90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90D30F21-4392-479F-BE18-F9C341F32A90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90D30F21-4392-479F-BE18-F9C341F32A90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A529951-EC2A-4737-9122-9F45F3BB31C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A529951-EC2A-4737-9122-9F45F3BB31C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A529951-EC2A-4737-9122-9F45F3BB31C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A529951-EC2A-4737-9122-9F45F3BB31C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97F8D4E8-4955-4771-AC0D-29058887A3A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97F8D4E8-4955-4771-AC0D-29058887A3A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97F8D4E8-4955-4771-AC0D-29058887A3A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97F8D4E8-4955-4771-AC0D-29058887A3A7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {017AB978-9578-4637-A062-E9A4D41D91BE}
+	EndGlobalSection
+EndGlobal
