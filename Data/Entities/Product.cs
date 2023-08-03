@@ -13,7 +13,7 @@ namespace Data.Entities
         public int SubCategoryId { get; set; }
         public SubCategory SubCategory { get; set; }
 
-        public int CompanyId { get; set; }
+        public int ProductionCompanyId { get; set; }
         public ProductionCompany ProductionCompany { get; set; }
 
         public DateTime CreatedDate { get; set; }

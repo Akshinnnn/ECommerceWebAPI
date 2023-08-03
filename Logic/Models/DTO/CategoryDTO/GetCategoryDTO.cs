@@ -1,4 +1,5 @@
 ﻿using Data.Entities;
+using Logic.Models.DTO.SubCategoryDTO;
 
 namespace Logic.Models.DTO.CategoryDTO
 {

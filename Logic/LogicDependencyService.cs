@@ -22,6 +22,8 @@ namespace Logic
             services.AddAutoMapper(typeof(MapperProfile));
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<ISubCategoryService, SubCategoryService>();
+            services.AddScoped<IProductService, ProductService>();
 
             return services;
         }

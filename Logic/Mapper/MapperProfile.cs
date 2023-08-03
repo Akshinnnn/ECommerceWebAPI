@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Data.Entities;
 using Logic.Models.DTO.CategoryDTO;
+using Logic.Models.DTO.SubCategoryDTO;
 using Logic.Models.DTO.ProductDTO;
 using System;
 using System.Collections.Generic;
