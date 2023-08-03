@@ -7,7 +7,7 @@ namespace Data.Entities
         public string ProductName { get; set; }
         public decimal Price { get; set; }
         public decimal? OldPrice { get; set; }
-        public int DiscountPercent { get; set; }
+        public int? DiscountPercent { get; set; }
         public int Quantity { get; set; }
 
         public int SubCategoryId { get; set; }

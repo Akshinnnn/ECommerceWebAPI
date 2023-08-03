@@ -86,3 +86,5 @@ C:\Users\Akshin\Desktop\matrix\ECommerceWebAPI\Presentation\obj\Debug\net7.0\ref
 C:\Users\Akshin\Desktop\matrix\ECommerceWebAPI\Presentation\obj\Debug\net7.0\Presentation.pdb
 C:\Users\Akshin\Desktop\matrix\ECommerceWebAPI\Presentation\obj\Debug\net7.0\Presentation.genruntimeconfig.cache
 C:\Users\Akshin\Desktop\matrix\ECommerceWebAPI\Presentation\obj\Debug\net7.0\ref\Presentation.dll
+C:\Users\Akshin\Desktop\matrix\ECommerceWebAPI\Presentation\bin\Debug\net7.0\AutoMapper.dll
+C:\Users\Akshin\Desktop\matrix\ECommerceWebAPI\Presentation\bin\Debug\net7.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
