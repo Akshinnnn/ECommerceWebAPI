@@ -1,4 +1,9 @@
 ﻿using Data.DAL;
+using Logic.Mapper;
+using Logic.Repository;
+using Logic.Repository.Implementations;
+using Logic.Services;
+using Logic.Services.Implementations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +19,10 @@ namespace Logic
     {
         public static IServiceCollection LogicServices(this IServiceCollection services)
         {
+            services.AddAutoMapper(typeof(MapperProfile));
+            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            services.AddScoped<ICategoryService, CategoryService>();
+
             return services;
         }
     }
