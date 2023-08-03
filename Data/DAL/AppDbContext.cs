@@ -1,10 +1,13 @@
-﻿using Data.Entities;
+﻿using Data.DAL.ExpressionHelper;
+using Data.Entities;
+using Data.Entities.PropertyInterfaces;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,6 +22,19 @@ namespace Data.DAL
             //Entity type configurations
             builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
+
+            //Setting global query for soft deleted entities
+            var entities = typeof(ISoftDelete).Assembly.GetTypes()
+                .Where(t => typeof(ISoftDelete).IsAssignableFrom(t) 
+                && t.IsClass && t.BaseType is null);
+
+            foreach (var entity in entities)
+            {
+                builder.Entity(entity).HasQueryFilter
+                    (GlobalQueryExpressionGenerator.GenerateExpression(entity));
+            }
+
+            //OrderProduct configuration
             builder.Entity<OrderProduct>().HasKey(x => new { x.OrderId, x.ProductId});
 
             base.OnModelCreating(builder);
