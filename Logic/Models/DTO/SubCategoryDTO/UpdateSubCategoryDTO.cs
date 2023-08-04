@@ -1,4 +1,4 @@
-﻿namespace Logic.Models.DTO.CategoryDTO
+﻿namespace Logic.Models.DTO.SubCategoryDTO
 {
     public class UpdateSubCategoryDTO
     {

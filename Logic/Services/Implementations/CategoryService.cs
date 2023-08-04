@@ -25,7 +25,7 @@ namespace Logic.Services.Implementations
 
         public async Task<bool> AddCategory(AddCategoryDTO categoryDTO)
         {
-            if (categoryDTO is not null)
+            if (categoryDTO.CategoryName is not null)
             {
                 var entity = _mapper.Map<Category>(categoryDTO);
                 await _genericRepo.Add(entity);

@@ -1,12 +1,14 @@
 ﻿using AutoMapper;
 using Data.Entities;
 using Logic.Models.DTO.CategoryDTO;
+using Logic.Models.DTO.SubCategoryDTO;
 using Logic.Models.DTO.ProductDTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Logic.Models.DTO.ProductInfoDTO;
 
 namespace Logic.Mapper
 {
@@ -25,6 +27,11 @@ namespace Logic.Mapper
             CreateMap<Product, AddProductDTO>().ReverseMap();
             CreateMap<Product, UpdateProductDTO>().ReverseMap();
             CreateMap<Product, GetProductDTO>().ReverseMap();
+
+
+            CreateMap<ProductInformation, AddProductInfoDTO>().ReverseMap();
+            CreateMap<ProductInformation, UpdateProductInfoDTO>().ReverseMap();
+            CreateMap<ProductInformation, GetProductInfoDTO>().ReverseMap();
         }
     }
 }
