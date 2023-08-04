@@ -24,6 +24,7 @@ namespace Logic
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<ISubCategoryService, SubCategoryService>();
             services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IProductInfoService, ProductInfoService>();
 
             return services;
         }
