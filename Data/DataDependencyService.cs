@@ -1,4 +1,5 @@
 ﻿using Data.DAL;
+using Data.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -21,7 +22,7 @@ namespace Data
                 op.UseSqlServer(configuration.GetConnectionString("Default"));
             });
 
-            services.AddIdentity<IdentityUser, IdentityRole>()
+            services.AddIdentity<User, IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
 

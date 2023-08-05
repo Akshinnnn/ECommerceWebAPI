@@ -8,8 +8,9 @@ using System.Threading.Tasks;
 
 namespace Data.Entities
 {
-    public class User : IdentityUser, IDateProperties, ISoftDelete
+    public class User : IdentityUser, IDateProperties
     {
+        public string? RefreshToken { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? UpdatedDate { get; set; }
 

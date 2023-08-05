@@ -8,7 +8,7 @@ var Configuration = builder.Configuration;
 // Add services to the container.
 
 builder.Services.DataServices(Configuration);
-builder.Services.LogicServices();
+builder.Services.LogicServices(Configuration);
 builder.Services.PresentationServices();
 
 var app = builder.Build();
@@ -21,6 +21,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
