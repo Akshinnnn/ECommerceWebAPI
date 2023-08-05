@@ -88,3 +88,4 @@ C:\Users\Akshin\Desktop\matrix\ECommerceWebAPI\Presentation\obj\Debug\net7.0\Pre
 C:\Users\Akshin\Desktop\matrix\ECommerceWebAPI\Presentation\obj\Debug\net7.0\ref\Presentation.dll
 C:\Users\Akshin\Desktop\matrix\ECommerceWebAPI\Presentation\bin\Debug\net7.0\AutoMapper.dll
 C:\Users\Akshin\Desktop\matrix\ECommerceWebAPI\Presentation\bin\Debug\net7.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
+C:\Users\Akshin\Desktop\matrix\ECommerceWebAPI\Presentation\bin\Debug\net7.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll

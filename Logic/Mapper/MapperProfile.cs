@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Logic.Models.DTO.ProductInfoDTO;
+using Logic.Models.DTO.UserDTO;
 
 namespace Logic.Mapper
 {
@@ -28,10 +29,12 @@ namespace Logic.Mapper
             CreateMap<Product, UpdateProductDTO>().ReverseMap();
             CreateMap<Product, GetProductDTO>().ReverseMap();
 
-
             CreateMap<ProductInformation, AddProductInfoDTO>().ReverseMap();
             CreateMap<ProductInformation, UpdateProductInfoDTO>().ReverseMap();
             CreateMap<ProductInformation, GetProductInfoDTO>().ReverseMap();
+
+            CreateMap<User, RegisterUserDTO>().ReverseMap();
+            CreateMap<User, LoginUserDTO>().ReverseMap();
         }
     }
 }
