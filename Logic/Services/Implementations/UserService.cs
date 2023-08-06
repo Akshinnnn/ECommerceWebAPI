@@ -72,7 +72,7 @@ namespace Logic.Services.Implementations
 
                 if (result.Succeeded)
                 {
-                    //await _userManager.AddToRoleAsync(user, "User");
+                    await _userManager.AddToRoleAsync(user, "User");
                     return true;
                 }
 
