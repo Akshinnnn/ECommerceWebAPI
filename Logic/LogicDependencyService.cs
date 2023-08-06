@@ -29,6 +29,7 @@ namespace Logic
             services.AddScoped<IProductInfoService, ProductInfoService>();
             services.AddScoped<IProductionCompanyService, ProductionCompanyService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ITokenService, TokenService>();
 
             //JWT configuration:
             services.AddAuthentication(a =>
@@ -50,6 +51,10 @@ namespace Logic
                 };
                 op.Events = new JwtBearerEvents
                 {
+                    /*
+                     * When validation fails this function will return completedTask
+                     * if token is expired then it will add information about expiration to the header of the response
+                     */
                     OnAuthenticationFailed = context =>
                     {
                         if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
