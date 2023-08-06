@@ -20,19 +20,20 @@ namespace Logic.Services.Implementations
         private readonly SignInManager<User> _signInManager;
         private readonly IMapper _mapper;
         private readonly IConfiguration _config;
-        private readonly IGenericRepository<Token> _tokenRepo;
         private readonly IGenericRepository<User> _userRepo;
+        private readonly ITokenService _tokenService;
 
         public UserService(UserManager<User> userManager, SignInManager<User> signInManager,
-            IMapper mapper, IConfiguration config, IGenericRepository<Token> tokenRepo,
-            IGenericRepository<User> userRepo)
+            IMapper mapper, IConfiguration config,
+            IGenericRepository<User> userRepo,
+            ITokenService tokenService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _mapper = mapper;
             _config = config;
-            _tokenRepo = tokenRepo;
-            _userRepo = userRepo;    
+            _userRepo = userRepo;
+            _tokenService = tokenService;
         }
 
         public async Task<TokenContent> Login(LoginUserDTO userDTO)
@@ -51,15 +52,7 @@ namespace Logic.Services.Implementations
                     _userRepo.Update(user);
                     await _userRepo.Commit();
 
-                    Token token = new Token()
-                    {
-                        JWTToken = tokenContent.AccessToken,
-                        UserId = user.Id,
-                        CreatedDate = DateTime.Now
-                    };
-
-                    await _tokenRepo.Add(token);
-                    await _tokenRepo.Commit();
+                    await _tokenService.AddToken(user.Id, tokenContent.AccessToken);
 
                     return tokenContent;
                 }
