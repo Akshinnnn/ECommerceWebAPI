@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Logic.Models.DTO.ProductInfoDTO;
 using Logic.Models.DTO.UserDTO;
+using Microsoft.AspNetCore.Identity;
+using Logic.Models.DTO.RoleDTO;
 
 namespace Logic.Mapper
 {
@@ -35,6 +37,9 @@ namespace Logic.Mapper
 
             CreateMap<User, RegisterUserDTO>().ReverseMap();
             CreateMap<User, LoginUserDTO>().ReverseMap();
+
+            CreateMap<AddRoleDTO, IdentityRole>().ReverseMap();
+            CreateMap<GetRolesDTO, IdentityRole>().ReverseMap();
         }
     }
 }

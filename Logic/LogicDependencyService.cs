@@ -30,6 +30,7 @@ namespace Logic
             services.AddScoped<IProductionCompanyService, ProductionCompanyService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IRoleService, RoleService>();
 
             //JWT configuration:
             services.AddAuthentication(a =>
