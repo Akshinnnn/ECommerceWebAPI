@@ -1,8 +1,14 @@
-﻿using Logic.JWTService;
+﻿using AutoMapper;
+using Data.Entities;
+using Logic.JWTService;
 using Logic.Models.DTO.UserDTO;
+using Logic.Models.EmailConfigurationModel;
 using Logic.Services;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using System.Web;
 
 namespace Presentation.Controllers
 {
@@ -23,9 +29,9 @@ namespace Presentation.Controllers
             var registered = await _userService.Register(userDTO);
             if (registered)
             {
-                return Ok(userDTO.UserName);
+                return Ok($"User registered and email confirmation link sent to {userDTO.Email}");               
             }
-
+            
             return BadRequest("Failed to register!");    
         }
 
@@ -33,13 +39,24 @@ namespace Presentation.Controllers
         public async Task<IActionResult> Login([FromBody] LoginUserDTO userDTO)
         {
             var tokenContent = await _userService.Login(userDTO);   
-
+            
             if (tokenContent is not null)
             {
                 return Ok(tokenContent);
             }
-
+            
             return BadRequest("Email or password is not correct!");
+        }
+
+        [HttpPost("ConfirmEmail")]
+        public async Task<IActionResult> ConfirmEmail(string email, string token)
+        {
+            var isConfirmed = await _userService.ConfirmEmail(email, token);
+            if (isConfirmed)
+            {
+                return Ok("Email is successfully confirmed!");
+            }
+            return BadRequest("Failed to confirm an email!");
         }
     }
 }
