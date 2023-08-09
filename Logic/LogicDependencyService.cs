@@ -1,10 +1,12 @@
 ﻿using Data.DAL;
 using Logic.Mapper;
+using Logic.Models.EmailConfigurationModel;
 using Logic.Repository;
 using Logic.Repository.Implementations;
 using Logic.Services;
 using Logic.Services.Implementations;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -22,15 +24,22 @@ namespace Logic
         {
             services.AddAutoMapper(typeof(MapperProfile));
 
+            //Taking values from appsettings 
+            services.Configure<EmailConfigModel>(config.GetSection("EmailConfiguration"));
+            
+
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<ISubCategoryService, SubCategoryService>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IProductInfoService, ProductInfoService>();
             services.AddScoped<IProductionCompanyService, ProductionCompanyService>();
-            services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITokenService, TokenService>();
+            services.AddTransient<IMessageService, MessageService>();
+            services.AddTransient<IEmailService, EmailService>();
+            services.AddScoped<IUserService, UserService>();
             services.AddScoped<IRoleService, RoleService>();
+
 
             //JWT configuration:
             services.AddAuthentication(a =>

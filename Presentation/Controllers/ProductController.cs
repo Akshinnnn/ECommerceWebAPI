@@ -25,7 +25,6 @@ namespace Presentation.Controllers
             {
                 return Ok(productDTO.ProductName);
             }
-
             return BadRequest("Failed attempt to add an entity!");    
         }
 

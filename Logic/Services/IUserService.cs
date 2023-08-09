@@ -1,4 +1,5 @@
-﻿using Logic.Models.DTO.UserDTO;
+﻿using Data.Entities;
+using Logic.Models.DTO.UserDTO;
 using Logic.Models.JWTContentModel;
 using System;
 using System.Collections.Generic;
@@ -12,5 +13,7 @@ namespace Logic.Services
     {
         Task<bool> Register(RegisterUserDTO userDTO);
         Task<TokenContent> Login(LoginUserDTO userDTO);
+        Task<bool> SoftDelete(string id);
+        Task<bool> ConfirmEmail(string email, string token);
     }
 }
