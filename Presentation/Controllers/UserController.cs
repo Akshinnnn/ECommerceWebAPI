@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using System.Security.Claims;
 using System.Web;
 
 namespace Presentation.Controllers
@@ -46,6 +47,31 @@ namespace Presentation.Controllers
             }
             
             return BadRequest("Email or password is not correct!");
+        }
+
+        [HttpGet("GetUsers")]
+        public async Task<IActionResult> GetUsers()
+        {
+            var users = await _userService.GetUsers();
+            if (users is not null)
+            {
+                return Ok(users);
+            }
+
+            return NoContent();
+        }
+
+        [HttpPatch]
+        public async Task<IActionResult> SoftDelete()
+        {
+            var isDeleted = await _userService.SoftDelete(User.FindFirstValue("UserId"));
+
+            if (isDeleted)
+            {
+                return Ok();
+            }
+
+            return BadRequest();
         }
 
         [HttpPost("ConfirmEmail")]

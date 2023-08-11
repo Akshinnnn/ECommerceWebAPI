@@ -38,6 +38,7 @@ namespace Logic.Mapper
             CreateMap<User, RegisterUserDTO>().ReverseMap();
             CreateMap<User, LoginUserDTO>().ReverseMap();
             CreateMap<User, UpdateUserDTO>().ReverseMap();
+            CreateMap<User, GetUserDTO>().ReverseMap();
 
             CreateMap<AddRoleDTO, IdentityRole>().ReverseMap();
             CreateMap<GetRolesDTO, IdentityRole>().ReverseMap();

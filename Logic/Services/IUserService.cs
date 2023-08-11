@@ -15,5 +15,6 @@ namespace Logic.Services
         Task<TokenContent> Login(LoginUserDTO userDTO);
         Task<bool> SoftDelete(string id);
         Task<bool> ConfirmEmail(string email, string token);
+        Task<IEnumerable<GetUserDTO>> GetUsers();
     }
 }
