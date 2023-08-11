@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
 using System;
@@ -28,12 +29,13 @@ namespace Logic.Services.Implementations
         private readonly ITokenService _tokenService;
         private readonly IEmailService _emailService;
         private readonly IMessageService _messageService;
+        private readonly IGenericRepository<User> _userRepo;
 
         public UserService(UserManager<User> userManager, SignInManager<User> signInManager,
             IMapper mapper, IConfiguration config,
             ITokenService tokenService,
             IEmailService emailService,
-            IMessageService messageService)
+            IMessageService messageService, IGenericRepository<User> userRepo)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -42,6 +44,7 @@ namespace Logic.Services.Implementations
             _tokenService = tokenService;
             _emailService = emailService;
             _messageService = messageService;
+            _userRepo = userRepo;
         }
 
         public async Task<bool> ConfirmEmail(string email, string token)
@@ -57,6 +60,18 @@ namespace Logic.Services.Implementations
                 return false;
             }
             return false;
+        }
+
+        public async Task<IEnumerable<GetUserDTO>> GetUsers()
+        {
+            var users = await _userRepo.GetAll()
+                .Where(u => u.IsDeleted == false)
+                .Include(u => u.Orders)
+                .Include(u => u.Baskets)
+                .ToListAsync();
+            var userDTO = _mapper.Map<IEnumerable<GetUserDTO>>(users);
+
+            return userDTO;
         }
 
         public async Task<TokenContent> Login(LoginUserDTO userDTO)
@@ -80,10 +95,10 @@ namespace Logic.Services.Implementations
                     return tokenContent;
                 }
 
-                return null;
+                return default(TokenContent);
             }
 
-            return null;
+            return default(TokenContent);
         }
 
         public async Task<bool> Register(RegisterUserDTO userDTO)
