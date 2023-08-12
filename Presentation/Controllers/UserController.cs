@@ -28,61 +28,35 @@ namespace Presentation.Controllers
         public async Task<IActionResult> Register([FromBody] RegisterUserDTO userDTO)
         {
             var registered = await _userService.Register(userDTO);
-            if (registered)
-            {
-                return Ok($"User registered and email confirmation link sent to {userDTO.Email}");               
-            }
-            
-            return BadRequest("Failed to register!");    
+            return StatusCode(registered.StatusCode, registered);  
         }
 
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginUserDTO userDTO)
         {
-            var tokenContent = await _userService.Login(userDTO);   
-            
-            if (tokenContent is not null)
-            {
-                return Ok(tokenContent);
-            }
-            
-            return BadRequest("Email or password is not correct!");
+            var res = await _userService.Login(userDTO);
+            return StatusCode(res.StatusCode, res);
         }
 
         [HttpGet("GetUsers")]
         public async Task<IActionResult> GetUsers()
         {
-            var users = await _userService.GetUsers();
-            if (users is not null)
-            {
-                return Ok(users);
-            }
-
-            return NoContent();
+            var res = await _userService.GetUsers();
+            return StatusCode(res.StatusCode, res);
         }
 
-        [HttpPatch]
+        [HttpPatch("DeleteAccount")]
         public async Task<IActionResult> SoftDelete()
         {
-            var isDeleted = await _userService.SoftDelete(User.FindFirstValue("UserId"));
-
-            if (isDeleted)
-            {
-                return Ok();
-            }
-
-            return BadRequest();
+            var res = await _userService.SoftDelete(User.FindFirstValue("UserId"));
+            return StatusCode(res.StatusCode, res);
         }
 
         [HttpPost("ConfirmEmail")]
         public async Task<IActionResult> ConfirmEmail(string email, string token)
         {
             var isConfirmed = await _userService.ConfirmEmail(email, token);
-            if (isConfirmed)
-            {
-                return Ok("Email is successfully confirmed!");
-            }
-            return BadRequest("Failed to confirm an email!");
+            return StatusCode(isConfirmed.StatusCode, isConfirmed);
         }
     }
 }
