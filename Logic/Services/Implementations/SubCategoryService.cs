@@ -2,6 +2,7 @@
 using Data.Entities;
 using Logic.Models.DTO.CategoryDTO;
 using Logic.Models.DTO.SubCategoryDTO;
+using Logic.Models.GenericResponseModel;
 using Logic.Repository;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -23,67 +24,121 @@ namespace Logic.Services.Implementations
             _mapper = mapper;
         }
 
-        public async Task<bool> AddSubCategory(AddSubCategoryDTO subCategoryDTO)
+        public async Task<GenericResponse<bool>> AddSubCategory(AddSubCategoryDTO subCategoryDTO)
         {
-            if (subCategoryDTO.SubCategoryName is not null)
+            GenericResponse<bool> res = new GenericResponse<bool>();
+
+            try
             {
-                var entity = _mapper.Map<SubCategory>(subCategoryDTO);
-                await _genericRepo.Add(entity);
-                await _genericRepo.Commit();
+                if (subCategoryDTO.SubCategoryName is not null)
+                {
+                    var entity = _mapper.Map<SubCategory>(subCategoryDTO);
+                    await _genericRepo.Add(entity);
+                    await _genericRepo.Commit();
 
-                return true;
+                    res.Success(true);
+                    return res;
+                }
+                res.Error(400, "Failed to add an entity!");
+                return res;
             }
-
-            return false;
-        }
-
-        public async Task<IEnumerable<GetSubCategoryDTO>> GetSubCategories()
-        {
-            var entities = await _genericRepo.GetAll().Include(c => c.Products).ToListAsync();
-            var categories = _mapper.Map<IEnumerable<GetSubCategoryDTO>>(entities);
-
-            return categories;
-        }
-
-        public async Task<GetSubCategoryDTO> GetSubCategoryById(int id)
-        {
-            var entity = await _genericRepo.GetByExpression(c => c.Id == id).Include(c => c.Products).FirstOrDefaultAsync();
-            var category = _mapper.Map<GetSubCategoryDTO>(entity);
-
-            return category;
-        }
-
-        public async Task<bool> SoftDeleteSubCategory(int id)
-        {
-            if (await _genericRepo.GetById(id) is not null)
+            catch (Exception ex)
             {
-                var entity = await _genericRepo.GetById(id);
-                entity.IsDeleted = true;
-
-                _genericRepo.Update(entity);
-                await _genericRepo.Commit();
-
-                return true;
+                res.InternalError();
             }
-
-            return false;
+            return res;
         }
 
-        public async Task<bool> UpdateSubCategory(UpdateSubCategoryDTO subCategoryDTO)
+        public async Task<GenericResponse<IEnumerable<GetSubCategoryDTO>>> GetSubCategories()
         {
-            if (await _genericRepo.GetById(subCategoryDTO.Id) is not null)
+            GenericResponse<IEnumerable<GetSubCategoryDTO>> res = new GenericResponse<IEnumerable<GetSubCategoryDTO>>();
+
+            try
             {
-                var entity = await _genericRepo.GetById(subCategoryDTO.Id);
-                var category = _mapper.Map(subCategoryDTO, entity);
-                category.UpdatedDate = DateTime.Now;
+                var entities = await _genericRepo.GetAll().Include(c => c.Products).ToListAsync();
+                var categories = _mapper.Map<IEnumerable<GetSubCategoryDTO>>(entities);
 
-                _genericRepo.Update(category);
-                await _genericRepo.Commit();
-
-                return true;
+                res.Success(categories);
+                return res;
             }
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
+        }
 
-            return false;
+        public async Task<GenericResponse<GetSubCategoryDTO>> GetSubCategoryById(int id)
+        {
+            GenericResponse<GetSubCategoryDTO> res = new GenericResponse<GetSubCategoryDTO>();
+
+            try
+            {
+                var entity = await _genericRepo.GetByExpression(c => c.Id == id).Include(c => c.Products).FirstOrDefaultAsync();
+                var category = _mapper.Map<GetSubCategoryDTO>(entity);
+
+                res.Success(category);
+                return res;
+            }
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
+        }
+
+        public async Task<GenericResponse<bool>> SoftDeleteSubCategory(int id)
+        {
+            GenericResponse<bool> res = new GenericResponse<bool>();
+
+            try
+            {
+                if (await _genericRepo.GetById(id) is not null)
+                {
+                    var entity = await _genericRepo.GetById(id);
+                    entity.IsDeleted = true;
+
+                    _genericRepo.Update(entity);
+                    await _genericRepo.Commit();
+
+                    res.Success(true);
+                    return res;
+                }
+                res.Error(400, "User does not exist!");
+                return res;
+            }catch(Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
+        }
+
+        public async Task<GenericResponse<bool>> UpdateSubCategory(UpdateSubCategoryDTO subCategoryDTO)
+        {
+            GenericResponse<bool> res = new GenericResponse<bool>();
+
+            try
+            {
+                if (await _genericRepo.GetById(subCategoryDTO.Id) is not null)
+                {
+                    var entity = await _genericRepo.GetById(subCategoryDTO.Id);
+                    var category = _mapper.Map(subCategoryDTO, entity);
+                    category.UpdatedDate = DateTime.Now;
+
+                    _genericRepo.Update(category);
+                    await _genericRepo.Commit();
+
+                    res.Success(true);
+                    return res;
+                }
+                res.Error(400, "User does not exist!");
+                return res;
+            }
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
         }
     }
 }

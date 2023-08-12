@@ -3,6 +3,7 @@ using Data.Entities;
 using Logic.JWTService;
 using Logic.Models.DTO.UserDTO;
 using Logic.Models.EmailConfigurationModel;
+using Logic.Models.GenericResponseModel;
 using Logic.Models.JWTContentModel;
 using Logic.Repository;
 using Microsoft.AspNetCore.Identity;
@@ -15,6 +16,7 @@ using MimeKit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -47,95 +49,166 @@ namespace Logic.Services.Implementations
             _userRepo = userRepo;
         }
 
-        public async Task<bool> ConfirmEmail(string email, string token)
+        public async Task<GenericResponse<bool>> ConfirmEmail(string email, string token)
         {
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user is not null)
+            GenericResponse<bool> response = new GenericResponse<bool>();
+
+            try
             {
-                var result = await _userManager.ConfirmEmailAsync(user, token);
-                if (result.Succeeded)
+                var user = await _userManager.FindByEmailAsync(email);
+
+                if (user is not null)
                 {
-                    return true;
+                    var result = await _userManager.ConfirmEmailAsync(user, token);
+                    if (result.Succeeded)
+                    {
+                        response.Success(true);
+                        return response;
+                    }
+                    response.Error(400, "Failed to confirm an email!");
+                    return response;
                 }
-                return false;
+                response.Error(400, "Failed to confirm an email!");
+                return response;
             }
-            return false;
+            catch (Exception ex)
+            {
+                response.InternalError();
+            }
+            return response;
         }
 
-        public async Task<IEnumerable<GetUserDTO>> GetUsers()
+        public async Task<GenericResponse<IEnumerable<GetUserDTO>>> GetUsers()
         {
-            var users = await _userRepo.GetAll()
+            GenericResponse<IEnumerable<GetUserDTO>> res = new GenericResponse<IEnumerable<GetUserDTO>>();
+
+            try
+            {
+                var users = await _userRepo.GetAll()
                 .Where(u => u.IsDeleted == false)
                 .Include(u => u.Orders)
                 .Include(u => u.Baskets)
                 .ToListAsync();
-            var userDTO = _mapper.Map<IEnumerable<GetUserDTO>>(users);
 
-            return userDTO;
+                var userDTO = _mapper.Map<IEnumerable<GetUserDTO>>(users);
+
+                res.Success(userDTO);
+                return res;
+            }
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+
+            return res;
         }
 
-        public async Task<TokenContent> Login(LoginUserDTO userDTO)
+        public async Task<GenericResponse<TokenContent>> Login(LoginUserDTO userDTO)
         {
-            var user = await _userManager.FindByEmailAsync(userDTO.Email);
+            GenericResponse<TokenContent> res = new GenericResponse<TokenContent>();
 
-            if (user is not null)
+            try
             {
-                Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(user, userDTO.Password, true, false);
+                var user = await _userManager.FindByEmailAsync(userDTO.Email);
 
-                if (result.Succeeded)
+                if (user is not null)
                 {
-                    var tokenContent = new JWTHelper().GenerateToken(_config, user);
+                    Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(user, userDTO.Password, true, false);
 
-                    user.RefreshToken = tokenContent.RefreshToken;
+                    if (result.Succeeded)
+                    {
+                        var tokenContent = new JWTHelper().GenerateToken(_config, user);
+
+                        user.RefreshToken = tokenContent.RefreshToken;
+
+                        await _userManager.UpdateAsync(user);
+
+                        await _tokenService.AddToken(user.Id, tokenContent.AccessToken!);
+
+                        res.Success(tokenContent);
+                        return res;
+                    }
+
+                    res.Error(400, "Email or password is not correct!");
+                    return res;
+                }
+
+                res.Error(400, "Email or password is not correct!");
+                return res;
+            }
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+
+            return res;
+        }
+
+        public async Task<GenericResponse<bool>> Register(RegisterUserDTO userDTO)
+        {
+            GenericResponse<bool> res = new GenericResponse<bool>();
+
+            try
+            {                
+                if (await _userManager.FindByNameAsync(userDTO.UserName) is null)
+                {
+                    if (userDTO.Password.Equals(userDTO.PasswordConfirmation))
+                    {
+                        var user = _mapper.Map<User>(userDTO);
+                        var result = await _userManager.CreateAsync(user, userDTO.Password);
+
+                        if (result.Succeeded)
+                        {
+                            await _userManager.AddToRoleAsync(user, "User");
+
+                            var message = await _messageService.GenerateMessage(user);
+                            await _emailService.SendEmail(message);
+
+                            res.Success(true);
+                            return res;
+                        }
+
+                        res.Error(400, "Failed to register");
+                        return res;
+                    }
+
+                    res.Error(400, "Passwords do not match!");
+                    return res;
+                }
+                res.Error(400, $"Username {userDTO.UserName} is taken!");
+                return res;
+            }
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
+        }
+
+        public async Task<GenericResponse<bool>> SoftDelete(string id)
+        {
+            var res = new GenericResponse<bool>();
+
+            try
+            {
+                if (await _userManager.FindByIdAsync(id) is not null)
+                {
+                    var user = await _userManager.FindByIdAsync(id);
+                    user.IsDeleted = true;
 
                     await _userManager.UpdateAsync(user);
 
-                    await _tokenService.AddToken(user.Id, tokenContent.AccessToken!);
-
-                    return tokenContent;
+                    res.Success(true);
+                    return res;
                 }
-
-                return default(TokenContent);
+                res.Error(400, "User does not exist!");
+                return res;
             }
-
-            return default(TokenContent);
-        }
-
-        public async Task<bool> Register(RegisterUserDTO userDTO)
-        {
-            if (userDTO.Password.Equals(userDTO.PasswordConfirmation))
+            catch (Exception ex)
             {
-                var user = _mapper.Map<User>(userDTO);
-                var result = await _userManager.CreateAsync(user, userDTO.Password);
-
-                if (result.Succeeded)
-                {
-                    await _userManager.AddToRoleAsync(user, "User");
-
-                    var message = await _messageService.GenerateMessage(user);
-                    await _emailService.SendEmail(message);
-
-                    return true;
-                }
-
-                return false;
+                res.InternalError();
             }
-
-            return false;
-        }
-
-        public async Task<bool> SoftDelete(string id)
-        {
-            if (await _userManager.FindByIdAsync(id) is not null)
-            {
-                var user = await _userManager.FindByIdAsync(id);
-                user.IsDeleted = true;
-
-                await _userManager.UpdateAsync(user);
-                return true;
-            }
-
-            return false;
+            return res;
         }
     }
 }

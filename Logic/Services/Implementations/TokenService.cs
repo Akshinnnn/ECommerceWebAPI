@@ -54,7 +54,7 @@ namespace Logic.Services.Implementations
                 return tokenContent;
             }
 
-            return null;
+            return default(TokenContent);
         }
     }
 }

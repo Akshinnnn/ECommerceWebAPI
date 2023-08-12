@@ -1,4 +1,5 @@
 ﻿using Logic.Models.DTO.SubCategoryDTO;
+using Logic.Models.GenericResponseModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +10,10 @@ namespace Logic.Services
 {
     public interface ISubCategoryService
     {
-        Task<bool> AddSubCategory(AddSubCategoryDTO subCategoryDTO);
-        Task<IEnumerable<GetSubCategoryDTO>> GetSubCategories();
-        Task<bool> UpdateSubCategory(UpdateSubCategoryDTO subCategoryDTO);
-        Task<bool> SoftDeleteSubCategory(int id);
-        Task<GetSubCategoryDTO> GetSubCategoryById(int id);
+        Task<GenericResponse<bool>> AddSubCategory(AddSubCategoryDTO subCategoryDTO);
+        Task<GenericResponse<IEnumerable<GetSubCategoryDTO>>> GetSubCategories();
+        Task<GenericResponse<bool>> UpdateSubCategory(UpdateSubCategoryDTO subCategoryDTO);
+        Task<GenericResponse<bool>> SoftDeleteSubCategory(int id);
+        Task<GenericResponse<GetSubCategoryDTO>> GetSubCategoryById(int id);
     }
 }
