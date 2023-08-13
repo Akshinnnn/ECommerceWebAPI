@@ -17,5 +17,6 @@ namespace Logic.Services
         Task<GenericResponse<bool>> SoftDelete(string id);
         Task<GenericResponse<bool>> ConfirmEmail(string email, string token);
         Task<GenericResponse<IEnumerable<GetUserDTO>>> GetUsers();
+        Task<GenericResponse<TokenContent>> RefreshTheToken(string resfreshToken);
     }
 }

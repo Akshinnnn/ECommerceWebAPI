@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Data.Entities;
 using Logic.Models.DTO.ProductionCompanyDTO;
+using Logic.Models.GenericResponseModel;
 using Logic.Repository;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -22,66 +23,139 @@ namespace Logic.Services.Implementations
             _mapper = mapper;
         }
 
-        public async Task<bool> Add(AddCompanyDTO companyDTO)
+        public async Task<GenericResponse<bool>> Add(AddCompanyDTO companyDTO)
         {
-            if (companyDTO is not null)
+            var res = new GenericResponse<bool>();
+
+            try
             {
-                var company = _mapper.Map<ProductionCompany>(companyDTO);
+                if (companyDTO is not null)
+                {
+                    var company = _mapper.Map<ProductionCompany>(companyDTO);
 
-                await _genericRepo.Add(company);
-                await _genericRepo.Commit();
+                    await _genericRepo.Add(company);
+                    await _genericRepo.Commit();
 
-                return true;
+                    res.Success(true);
+                    return res;
+                }
+
+                res.Error(400, "Invalid properties!");
+                return res;
             }
-
-            return false;
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
         }
 
-        public async Task<IEnumerable<GetCompanyDTO>> GetAll()
+        public async Task<GenericResponse<IEnumerable<GetCompanyDTO>>> GetAll()
         {
-            var entities = await _genericRepo.GetAll().ToListAsync();
-            var companies = _mapper.Map<IEnumerable<GetCompanyDTO>>(entities);
+            var res = new GenericResponse<IEnumerable<GetCompanyDTO>>();
 
-            return companies;   
+            try
+            {
+                var entities = await _genericRepo.GetAll().ToListAsync();
+
+                if (entities is not null)
+                {
+                    var companies = _mapper.Map<IEnumerable<GetCompanyDTO>>(entities);
+
+                    res.Success(companies);
+                    return res;
+                }
+                res.Error(400, "Companies do not exist!");
+                return res;
+            }
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
+
         }
 
-        public async Task<GetCompanyDTO> GetById(int id)
+        public async Task<GenericResponse<GetCompanyDTO>> GetById(int id)
         {
-            var entity = await _genericRepo.GetById(id);
-            var company = _mapper.Map<GetCompanyDTO>(entity);
+            var res = new GenericResponse<GetCompanyDTO>();
 
-            return company;
-        }
-
-        public async Task<bool> SoftDelete(int id)
-        {
-            if (await _genericRepo.GetById(id) is not null)
+            try
             {
                 var entity = await _genericRepo.GetById(id);
-                entity.IsDeleted = true;
 
-                _genericRepo.Update(entity);
-                await _genericRepo.Commit();
-                return true;
+                if (entity is not null)
+                {
+                    var company = _mapper.Map<GetCompanyDTO>(entity);
+
+                    res.Success(company);
+                    return res;
+                }
+                res.Error(400, "Company does not exist!");
+                return res;
             }
-
-            return false;
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
         }
 
-        public async Task<bool> Update(UpdateCompanyDTO companyDTO)
+        public async Task<GenericResponse<bool>> SoftDelete(int id)
         {
-            if (await _genericRepo.GetById(companyDTO.Id) is not null)
+            var res = new GenericResponse<bool>();
+
+            try
             {
-                var entity = await _genericRepo.GetById(companyDTO.Id);
-                var company = _mapper.Map(companyDTO, entity);
-                entity.UpdatedDate = DateTime.Now;
+                if (await _genericRepo.GetById(id) is not null)
+                {
+                    var entity = await _genericRepo.GetById(id);
+                    entity.IsDeleted = true;
 
-                _genericRepo.Update(entity);
-                await _genericRepo.Commit();
-                return true;
+                    _genericRepo.Update(entity);
+                    await _genericRepo.Commit();
+
+                    res.Success(true);
+                    return res;
+                }
+                res.Error(400, "Company does not exist!");
+                return res;
             }
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
+            
+        }
 
-            return false;
+        public async Task<GenericResponse<bool>> Update(UpdateCompanyDTO companyDTO)
+        {
+            var res = new GenericResponse<bool>();
+
+            try
+            {
+                if (await _genericRepo.GetById(companyDTO.Id) is not null)
+                {
+                    var entity = await _genericRepo.GetById(companyDTO.Id);
+                    var company = _mapper.Map(companyDTO, entity);
+                    entity.UpdatedDate = DateTime.Now;
+
+                    _genericRepo.Update(entity);
+                    await _genericRepo.Commit();
+
+                    res.Success(true);
+                    return res;
+                }
+                res.Error(400, "Company does not exist!");
+                return res;
+            }
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
+            
         }
     }
 }

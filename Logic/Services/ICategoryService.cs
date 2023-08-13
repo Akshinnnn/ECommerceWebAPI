@@ -1,5 +1,6 @@
 ﻿using Data.Entities;
 using Logic.Models.DTO.CategoryDTO;
+using Logic.Models.GenericResponseModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,10 +11,10 @@ namespace Logic.Services
 {
     public interface ICategoryService
     {
-        Task<bool> AddCategory(AddCategoryDTO categoryDTO);
-        Task<IEnumerable<GetCategoryDTO>> GetCategories();
-        Task<bool> UpdateCategory(UpdateCategoryDTO categoryDTO);
-        Task<bool> SoftDeleteCategory(int id);
-        Task<GetCategoryDTO> GetCategoryById(int id);
+        Task<GenericResponse<bool>> AddCategory(AddCategoryDTO categoryDTO);
+        Task<GenericResponse<IEnumerable<GetCategoryDTO>>> GetCategories();
+        Task<GenericResponse<bool>> UpdateCategory(UpdateCategoryDTO categoryDTO);
+        Task<GenericResponse<bool>> SoftDeleteCategory(int id);
+        Task<GenericResponse<GetCategoryDTO>> GetCategoryById(int id);
     }
 }

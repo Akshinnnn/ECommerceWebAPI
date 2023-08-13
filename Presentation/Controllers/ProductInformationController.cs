@@ -19,58 +19,36 @@ namespace Presentation.Controllers
         [HttpPost("AddProductInfo")]
         public async Task<IActionResult> Add([FromBody] AddProductInfoDTO productInfoDTO)
         {
-            var isAdded = await _productInfoService.Add(productInfoDTO);
-
-            if (isAdded)
-            {
-                return Ok(productInfoDTO.Header);
-            }
-
-            return BadRequest("Failed attempt to add an entity!");
+            var res = await _productInfoService.Add(productInfoDTO);
+            return StatusCode(res.StatusCode, res);
         }
 
         [HttpGet("GetProductInfo")]
         public async Task<IActionResult> Get()
         {
-            if (await _productInfoService.Get() is not null)
-            {
-                return Ok(await _productInfoService.Get());
-            }
-
-            return NotFound();
+            var res = await _productInfoService.Get();
+            return StatusCode(res.StatusCode, res);
         }
 
         [HttpGet("GetProductInfoById")]
         public async Task<IActionResult> GetById([FromQuery] int id)
         {
-            if (await _productInfoService.GetById(id) is not null)
-            {
-                return Ok(await _productInfoService.GetById(id));
-            }
-
-            return NotFound();
+            var res = await _productInfoService.GetById(id);
+            return StatusCode(res.StatusCode, res);
         }
 
         [HttpPut("UpdateProductInfo")]
         public async Task<IActionResult> Update([FromBody] UpdateProductInfoDTO productInfoDTO)
         {
-            var isUpdated = await _productInfoService.Update(productInfoDTO);
-
-            if (isUpdated)
-                return Ok(productInfoDTO.Header);
-
-            return NotFound();
+            var res = await _productInfoService.Update(productInfoDTO);
+            return StatusCode(res.StatusCode, res);
         }
 
         [HttpPut("SoftDeleteProductInfo")]
         public async Task<IActionResult> Delete([FromBody] int id)
         {
-            var isDeleted = await _productInfoService.SoftDelete(id);
-
-            if (isDeleted)
-                return Ok(id);
-
-            return NotFound();
+            var res = await _productInfoService.SoftDelete(id);
+            return StatusCode(res.StatusCode, res);
         }
     }
 }
