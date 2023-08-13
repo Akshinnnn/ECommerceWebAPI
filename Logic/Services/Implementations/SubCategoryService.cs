@@ -56,9 +56,15 @@ namespace Logic.Services.Implementations
             try
             {
                 var entities = await _genericRepo.GetAll().Include(c => c.Products).ToListAsync();
-                var categories = _mapper.Map<IEnumerable<GetSubCategoryDTO>>(entities);
 
-                res.Success(categories);
+                if (entities is not null)
+                {
+                    var categories = _mapper.Map<IEnumerable<GetSubCategoryDTO>>(entities);
+
+                    res.Success(categories);
+                    return res;
+                }
+                res.Error(400, "SubCategories do not exist!");
                 return res;
             }
             catch (Exception ex)
@@ -75,9 +81,15 @@ namespace Logic.Services.Implementations
             try
             {
                 var entity = await _genericRepo.GetByExpression(c => c.Id == id).Include(c => c.Products).FirstOrDefaultAsync();
-                var category = _mapper.Map<GetSubCategoryDTO>(entity);
 
-                res.Success(category);
+                if (entity is not null)
+                {
+                    var category = _mapper.Map<GetSubCategoryDTO>(entity);
+
+                    res.Success(category);
+                    return res;
+                }
+                res.Error(400, "SubCategory does not exist!");
                 return res;
             }
             catch (Exception ex)
@@ -104,7 +116,7 @@ namespace Logic.Services.Implementations
                     res.Success(true);
                     return res;
                 }
-                res.Error(400, "User does not exist!");
+                res.Error(400, "SubCategory does not exist!");
                 return res;
             }catch(Exception ex)
             {
@@ -131,7 +143,7 @@ namespace Logic.Services.Implementations
                     res.Success(true);
                     return res;
                 }
-                res.Error(400, "User does not exist!");
+                res.Error(400, "SubCategory does not exist!");
                 return res;
             }
             catch (Exception ex)

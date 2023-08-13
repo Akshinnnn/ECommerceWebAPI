@@ -1,4 +1,5 @@
 ﻿using Logic.Models.DTO.ProductDTO;
+using Logic.Models.GenericResponseModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +10,10 @@ namespace Logic.Services
 {
     public interface IProductService
     {
-        Task<bool> Add(AddProductDTO productDTO);
-        Task<bool> Update(UpdateProductDTO productDTO);
-        Task<bool> SoftDelete(int id);
-        Task<IEnumerable<GetProductDTO>> GetProducts();
-        Task<GetProductDTO> GetProductById(int id);
+        Task<GenericResponse<bool>> Add(AddProductDTO productDTO);
+        Task<GenericResponse<bool>> Update(UpdateProductDTO productDTO);
+        Task<GenericResponse<bool>> SoftDelete(int id);
+        Task<GenericResponse<IEnumerable<GetProductDTO>>> GetProducts();
+        Task<GenericResponse<GetProductDTO>> GetProductById(int id);
     }
 }

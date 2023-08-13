@@ -55,8 +55,15 @@ namespace Presentation.Controllers
         [HttpPost("ConfirmEmail")]
         public async Task<IActionResult> ConfirmEmail(string email, string token)
         {
-            var isConfirmed = await _userService.ConfirmEmail(email, token);
-            return StatusCode(isConfirmed.StatusCode, isConfirmed);
+            var res = await _userService.ConfirmEmail(email, token);
+            return StatusCode(res.StatusCode, res);
+        }
+
+        [HttpPost("ResfreshTheToken")]
+        public async Task<IActionResult> RefreshToken(string refreshToken)
+        {
+            var res = await _userService.RefreshTheToken(refreshToken);
+            return StatusCode(res.StatusCode, res);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Data.Entities;
 using Logic.Models.DTO.ProductDTO;
+using Logic.Models.GenericResponseModel;
 using Logic.Repository;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
@@ -23,68 +24,140 @@ namespace Logic.Services.Implementations
             _mapper = mapper;
         }
 
-        public async Task<bool> Add(AddProductDTO productDTO)
+        public async Task<GenericResponse<bool>> Add(AddProductDTO productDTO)
         {
-            if (productDTO is not null)
+            var response = new GenericResponse<bool>();
+
+            try
             {
-                var entity = _mapper.Map<Product>(productDTO);
+                if (productDTO is not null)
+                {
+                    var entity = _mapper.Map<Product>(productDTO);
 
-                await _genericRepo.Add(entity);
-                await _genericRepo.Commit();
-                return true;
+                    await _genericRepo.Add(entity);
+                    await _genericRepo.Commit();
+
+                    response.Success(true);
+                    return response;
+                }
+
+                response.Error(400, "Invalid information added!");
+                return response;
             }
-
-            return false;
+            catch (Exception ex)
+            {
+                response.InternalError();
+            }
+            return response;
         }
 
-        public async Task<GetProductDTO> GetProductById(int id)
+        public async Task<GenericResponse<GetProductDTO>> GetProductById(int id)
         {
-            var entity = await _genericRepo.GetByExpression(p => p.Id == id)
+            var response = new GenericResponse<GetProductDTO>();
+
+            try
+            {
+                var entity = await _genericRepo.GetByExpression(p => p.Id == id)
                 .Include(p => p.ProductInformations)
                 .Include(p => p.Images).FirstOrDefaultAsync();
-            var product = _mapper.Map<GetProductDTO>(entity);
 
-            return product;
+                if (entity is not null)
+                {
+                    var product = _mapper.Map<GetProductDTO>(entity);
+                    response.Success(product);
+                    return response;
+                }
+                response.Error(400, "Product does not exist!");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.InternalError();
+            }
+            return response;
         }
 
-        public async Task<IEnumerable<GetProductDTO>> GetProducts()
+        public async Task<GenericResponse<IEnumerable<GetProductDTO>>> GetProducts()
         {
-            var entities = await _genericRepo.GetAll().Include(p => p.ProductInformations)
+            var response = new GenericResponse<IEnumerable<GetProductDTO>>();
+
+            try
+            {
+                var entities = await _genericRepo.GetAll().Include(p => p.ProductInformations)
                 .Include(p => p.Images).ToListAsync();
-            var products = _mapper.Map<IEnumerable<GetProductDTO>>(entities);
 
-            return products;
+                if (entities is not null)
+                {
+                    var products = _mapper.Map<IEnumerable<GetProductDTO>>(entities);
+
+                    response.Success(products);
+                    return response;
+                }
+                response.Error(400, "Products do not exist!");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.InternalError();
+            }
+            return response;
         }
 
-        public async Task<bool> SoftDelete(int id)
+        public async Task<GenericResponse<bool>> SoftDelete(int id)
         {
-            if (await _genericRepo.GetById(id) is not null)
+            var response = new GenericResponse<bool>();
+
+            try
             {
-                var entity = await _genericRepo.GetById(id);
-                entity.IsDeleted = true;
+                if (await _genericRepo.GetById(id) is not null)
+                {
+                    var entity = await _genericRepo.GetById(id);
+                    entity.IsDeleted = true;
 
-                _genericRepo.Update(entity);
-                await _genericRepo.Commit();
-                return true;
+                    _genericRepo.Update(entity);
+                    await _genericRepo.Commit();
+
+                    response.Success(true);
+                    return response;
+                }
+                response.Error(400, "Product does not exist!");
+                return response;
             }
-
-            return false;
+            catch (Exception ex)
+            {
+                response.InternalError();
+            }
+            return response;
         }
 
-        public async Task<bool> Update(UpdateProductDTO productDTO)
+        public async Task<GenericResponse<bool>> Update(UpdateProductDTO productDTO)
         {
-            if (await _genericRepo.GetById(productDTO.Id) is not null)
+            var response = new GenericResponse<bool>();
+
+            try
             {
-                var entity = await _genericRepo.GetById(productDTO.Id);
-                var product = _mapper.Map(productDTO, entity);
-                product.UpdatedDate = DateTime.Now;
+                if (await _genericRepo.GetById(productDTO.Id) is not null)
+                {
+                    var entity = await _genericRepo.GetById(productDTO.Id);
+                    var product = _mapper.Map(productDTO, entity);
+                    product.UpdatedDate = DateTime.Now;
 
-                _genericRepo.Update(product);
-                await _genericRepo.Commit();
-                return true;
+                    _genericRepo.Update(product);
+                    await _genericRepo.Commit();
+
+                    response.Success(true);
+                    return response;
+                }
+
+                response.Error(400, "Product does not exist!");
+                return response;
             }
+            catch (Exception ex)
+            {
+                response.InternalError();
+            }
+            return response;
 
-            return false;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Data.Entities;
 using Logic.Models.DTO.CategoryDTO;
+using Logic.Models.GenericResponseModel;
 using Logic.Repository;
 using Logic.Repository.Implementations;
 using Microsoft.EntityFrameworkCore;
@@ -23,67 +24,143 @@ namespace Logic.Services.Implementations
             _mapper = mapper;
         }
 
-        public async Task<bool> AddCategory(AddCategoryDTO categoryDTO)
+        public async Task<GenericResponse<bool>> AddCategory(AddCategoryDTO categoryDTO)
         {
-            if (categoryDTO.CategoryName is not null)
-            {
-                var entity = _mapper.Map<Category>(categoryDTO);
-                await _genericRepo.Add(entity);
-                await _genericRepo.Commit();
+            var res = new GenericResponse<bool>();
 
-                return true;
+            try
+            {
+                if (categoryDTO.CategoryName is not null)
+                {
+                    var entity = _mapper.Map<Category>(categoryDTO);
+                    await _genericRepo.Add(entity);
+                    await _genericRepo.Commit();
+
+                    res.Success(true);
+                    return res;
+                }
+
+                res.Error(400, "Invalid information!");
+                return res;
+            }
+            catch(Exception ex)
+            {
+                res.InternalError();
             }
 
-            return false;
+            return res;
         }
 
-        public async Task<IEnumerable<GetCategoryDTO>> GetCategories()
+        public async Task<GenericResponse<IEnumerable<GetCategoryDTO>>> GetCategories()
         {
-            var entities = await _genericRepo.GetAll().Include(c => c.SubCategories).ToListAsync();
-            var categories = _mapper.Map<IEnumerable<GetCategoryDTO>>(entities);
+            var res = new GenericResponse<IEnumerable<GetCategoryDTO>>();
 
-            return categories;
-        }
-
-        public async Task<GetCategoryDTO> GetCategoryById(int id)
-        {
-            var entity = await _genericRepo.GetByExpression(c => c.Id == id).Include(c => c.SubCategories).FirstOrDefaultAsync();
-            var category = _mapper.Map<GetCategoryDTO>(entity);
-
-            return category;
-        }
-
-        public async Task<bool> SoftDeleteCategory(int id)
-        {
-            if (await _genericRepo.GetById(id) is not null)
+            try
             {
-                var entity = await _genericRepo.GetById(id);
-                entity.IsDeleted = true;
+                var entities = await _genericRepo.GetAll().Include(c => c.SubCategories).ToListAsync();
 
-                _genericRepo.Update(entity);
-                await _genericRepo.Commit();
+                if (entities is not null)
+                {
+                    var categories = _mapper.Map<IEnumerable<GetCategoryDTO>>(entities);
 
-                return true;
+                    res.Success(categories);
+                    return res;
+                }
+                res.Error(400, "Categories do not exist!");
+                return res;
             }
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
 
-            return false;
         }
 
-        public async Task<bool> UpdateCategory(UpdateCategoryDTO categoryDTO)
+        public async Task<GenericResponse<GetCategoryDTO>> GetCategoryById(int id)
         {
-            if (await _genericRepo.GetById(categoryDTO.Id) is not null)
+            var res = new GenericResponse<GetCategoryDTO>();
+
+            try
             {
-                var entity = await _genericRepo.GetById(categoryDTO.Id);
-                var category = _mapper.Map(categoryDTO, entity);
-                category.UpdatedDate = DateTime.Now;
+                var entity = await _genericRepo.GetByExpression(c => c.Id == id)
+                    .Include(c => c.SubCategories)
+                    .FirstOrDefaultAsync();
+                
+                if (entity is not null)
+                {
+                    var category = _mapper.Map<GetCategoryDTO>(entity);
 
-                _genericRepo.Update(category);
-                await _genericRepo.Commit();
-
-                return true;
+                    res.Success(category);
+                    return res;
+                }
+                res.Error(400, "Category does not exist!");
+                return res;
             }
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
+            
+        }
 
-            return false;
+        public async Task<GenericResponse<bool>> SoftDeleteCategory(int id)
+        {
+            var res = new GenericResponse<bool>();
+
+            try
+            {
+                if (await _genericRepo.GetById(id) is not null)
+                {
+                    var entity = await _genericRepo.GetById(id);
+                    entity.IsDeleted = true;
+
+                    _genericRepo.Update(entity);
+                    await _genericRepo.Commit();
+
+                    res.Success(true);
+                    return res;
+                }
+
+                res.Error(400, "Category does not exist!");
+                return res;
+            }
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
+        }
+
+        public async Task<GenericResponse<bool>> UpdateCategory(UpdateCategoryDTO categoryDTO)
+        {
+            var res = new GenericResponse<bool>();
+
+            try
+            {
+                if (await _genericRepo.GetById(categoryDTO.Id) is not null)
+                {
+                    var entity = await _genericRepo.GetById(categoryDTO.Id);
+                    var category = _mapper.Map(categoryDTO, entity);
+                    category.UpdatedDate = DateTime.Now;
+
+                    _genericRepo.Update(category);
+                    await _genericRepo.Commit();
+
+                    res.Success(true);
+                    return res;
+                }
+
+                res.Error(400, "Category does not exist!");
+                return res;
+            }
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
+
         }
     }
 }

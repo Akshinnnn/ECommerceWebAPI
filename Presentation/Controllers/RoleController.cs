@@ -19,14 +19,29 @@ namespace Presentation.Controllers
         [HttpPost("AddRole")]
         public async Task<IActionResult> Add([FromBody] AddRoleDTO roleDTO)
         {
-            var isAdded = await _roleService.AddRole(roleDTO);
+            var res = await _roleService.AddRole(roleDTO);
+            return StatusCode(res.StatusCode, res);
+        }
 
-            if (isAdded)
-            {
-                return Ok(roleDTO.Name);
-            }
+        [HttpGet("GetRoles")]
+        public async Task<IActionResult> Get()
+        {
+            var res = await _roleService.GetRoles();
+            return StatusCode(res.StatusCode, res);
+        }
 
-            return BadRequest("Failed attempt to add an entity!");
+        [HttpPut("UpdateRole")]
+        public async Task<IActionResult> Update([FromBody] UpdateRoleDTO roleDTO)
+        {
+            var res = await _roleService.UpdateRole(roleDTO);
+            return StatusCode(res.StatusCode, res);
+        }
+
+        [HttpDelete("DeleteRole")]
+        public async Task<IActionResult> Delete([FromBody] string id)
+        {
+            var res = await _roleService.DeleteRole(id);
+            return StatusCode(res.StatusCode, res);
         }
     }
 }

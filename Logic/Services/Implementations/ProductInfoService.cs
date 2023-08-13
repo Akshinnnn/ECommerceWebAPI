@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Data.Entities;
 using Logic.Models.DTO.ProductInfoDTO;
+using Logic.Models.GenericResponseModel;
 using Logic.Repository;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -22,68 +23,137 @@ namespace Logic.Services.Implementations
             _mapper = mapper;
         }
 
-        public async Task<bool> Add(AddProductInfoDTO productInfoDTO)
+        public async Task<GenericResponse<bool>> Add(AddProductInfoDTO productInfoDTO)
         {
-            if (productInfoDTO is not null)
+            var res = new GenericResponse<bool>();
+
+            try
             {
-                var entity = _mapper.Map<ProductInformation>(productInfoDTO);
+                if (productInfoDTO is not null)
+                {
+                    var entity = _mapper.Map<ProductInformation>(productInfoDTO);
 
-                await _genericRepo.Add(entity);
-                await _genericRepo.Commit();
+                    await _genericRepo.Add(entity);
+                    await _genericRepo.Commit();
 
-                return true;
+                    res.Success(true);
+                    return res;
+                }
+                res.Error(400, "Invalid properties!");
+                return res;
             }
-
-            return false;
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
         }
 
-        public async Task<IEnumerable<GetProductInfoDTO>> Get()
+        public async Task<GenericResponse<IEnumerable<GetProductInfoDTO>>> Get()
         {
-            var entities = await _genericRepo.GetAll().ToListAsync();
-            var infos = _mapper.Map<IEnumerable<GetProductInfoDTO>>(entities);
+            var res = new GenericResponse<IEnumerable<GetProductInfoDTO>>();
 
-            return infos;
+            try
+            {
+                var entities = await _genericRepo.GetAll().ToListAsync();
+
+                if (entities is not null)
+                {
+                    var infos = _mapper.Map<IEnumerable<GetProductInfoDTO>>(entities);
+
+                    res.Success(infos);
+                    return res;
+                }
+                res.Error(400, "Informations do not exist!");
+            }
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
+            
         }
 
-        public async Task<GetProductInfoDTO> GetById(int id)
+        public async Task<GenericResponse<GetProductInfoDTO>> GetById(int id)
         {
-            var entity = await _genericRepo.GetById(id);
-            var info = _mapper.Map<GetProductInfoDTO>(entity);
+            var res = new GenericResponse<GetProductInfoDTO>();
 
-            return info;
-        }
-
-        public async Task<bool> SoftDelete(int id)
-        {
-            if (await _genericRepo.GetById(id) is not null)
+            try
             {
                 var entity = await _genericRepo.GetById(id);
-                entity.IsDeleted = true;
 
-                _genericRepo.Update(entity);
-                await _genericRepo.Commit();
+                if (entity is not null)
+                {
+                    var info = _mapper.Map<GetProductInfoDTO>(entity);
 
-                return true;
+                    res.Success(info);
+                    return res;
+                }
+                res.Error(400, "Information does not exist!");
             }
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
 
-            return false;
         }
 
-        public async Task<bool> Update(UpdateProductInfoDTO productInfoDTO)
+        public async Task<GenericResponse<bool>> SoftDelete(int id)
         {
-            if (await _genericRepo.GetById(productInfoDTO.Id) is not null)
+            var res = new GenericResponse<bool>();
+
+            try
             {
-                var entity = await _genericRepo.GetById(productInfoDTO.Id);
-                var info = _mapper.Map(productInfoDTO, entity);
-                info.UpdatedDate = DateTime.Now;
+                if (await _genericRepo.GetById(id) is not null)
+                {
+                    var entity = await _genericRepo.GetById(id);
+                    entity.IsDeleted = true;
 
-                _genericRepo.Update(info);
-                await _genericRepo.Commit();
+                    _genericRepo.Update(entity);
+                    await _genericRepo.Commit();
 
-                return true;
+                    res.Success(true);
+                    return res;
+                }
+                res.Error(400, "Information does not exist!");
+                return res;
             }
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
+            
+        }
 
-            return false;
+        public async Task<GenericResponse<bool>> Update(UpdateProductInfoDTO productInfoDTO)
+        {
+            var res = new GenericResponse<bool>();
+
+            try
+            {
+                if (await _genericRepo.GetById(productInfoDTO.Id) is not null)
+                {
+                    var entity = await _genericRepo.GetById(productInfoDTO.Id);
+                    var info = _mapper.Map(productInfoDTO, entity);
+                    info.UpdatedDate = DateTime.Now;
+
+                    _genericRepo.Update(info);
+                    await _genericRepo.Commit();
+
+                    res.Success(true);
+                    return res;
+                }
+                res.Error(400, "Information does not exist!");
+                return res;
+            }
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
+            
         }
     }
 }

@@ -90,9 +90,14 @@ namespace Logic.Services.Implementations
                 .Include(u => u.Baskets)
                 .ToListAsync();
 
-                var userDTO = _mapper.Map<IEnumerable<GetUserDTO>>(users);
+                if (users is not null)
+                {
+                    var userDTO = _mapper.Map<IEnumerable<GetUserDTO>>(users);
 
-                res.Success(userDTO);
+                    res.Success(userDTO);
+                    return res;
+                }
+                res.Error(400, "Users do not exist!");
                 return res;
             }
             catch (Exception ex)
@@ -141,6 +146,28 @@ namespace Logic.Services.Implementations
                 res.InternalError();
             }
 
+            return res;
+        }
+
+        public async Task<GenericResponse<TokenContent>> RefreshTheToken(string resfreshToken)
+        {
+            var res = new GenericResponse<TokenContent>();
+
+            try
+            {
+                var tokenContent = await _tokenService.RefreshToken(resfreshToken);
+                if (tokenContent is not null)
+                {
+                    res.Success(tokenContent);
+                    return res;
+                }
+                res.Error(400, "Failed to generate token!");
+                return res;
+            }
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
             return res;
         }
 
