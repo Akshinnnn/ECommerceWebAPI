@@ -94,3 +94,6 @@ C:\Users\Akshin\Desktop\matrix\ECommerceWebAPI\Presentation\bin\Debug\net7.0\Mai
 C:\Users\Akshin\Desktop\matrix\ECommerceWebAPI\Presentation\bin\Debug\net7.0\MimeKit.dll
 C:\Users\Akshin\Desktop\matrix\ECommerceWebAPI\Presentation\bin\Debug\net7.0\System.Security.Cryptography.Pkcs.dll
 C:\Users\Akshin\Desktop\matrix\ECommerceWebAPI\Presentation\bin\Debug\net7.0\runtimes\win\lib\net7.0\System.Security.Cryptography.Pkcs.dll
+C:\Users\Akshin\Desktop\matrix\ECommerceWebAPI\Presentation\bin\Debug\net7.0\FluentValidation.dll
+C:\Users\Akshin\Desktop\matrix\ECommerceWebAPI\Presentation\bin\Debug\net7.0\FluentValidation.AspNetCore.dll
+C:\Users\Akshin\Desktop\matrix\ECommerceWebAPI\Presentation\bin\Debug\net7.0\FluentValidation.DependencyInjectionExtensions.dll
