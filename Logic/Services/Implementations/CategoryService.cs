@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using Data.Entities;
+using FluentValidation;
 using Logic.Models.DTO.CategoryDTO;
 using Logic.Models.GenericResponseModel;
 using Logic.Repository;
 using Logic.Repository.Implementations;
+using Logic.Validators;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -27,10 +29,11 @@ namespace Logic.Services.Implementations
         public async Task<GenericResponse<bool>> AddCategory(AddCategoryDTO categoryDTO)
         {
             var res = new GenericResponse<bool>();
-
+            var validator = new AddCategoryValidator().Validate(categoryDTO);
+            
             try
             {
-                if (categoryDTO.CategoryName is not null)
+                if (validator.IsValid)
                 {
                     var entity = _mapper.Map<Category>(categoryDTO);
                     await _genericRepo.Add(entity);
@@ -40,7 +43,7 @@ namespace Logic.Services.Implementations
                     return res;
                 }
 
-                res.Error(400, "Invalid information!");
+                res.Error(400, validator.Errors.FirstOrDefault().ToString());
                 return res;
             }
             catch(Exception ex)
@@ -136,23 +139,29 @@ namespace Logic.Services.Implementations
         public async Task<GenericResponse<bool>> UpdateCategory(UpdateCategoryDTO categoryDTO)
         {
             var res = new GenericResponse<bool>();
+            var validator = new UpdateCategoryValidator().Validate(categoryDTO);
 
             try
             {
-                if (await _genericRepo.GetById(categoryDTO.Id) is not null)
+                if (validator.IsValid)
                 {
-                    var entity = await _genericRepo.GetById(categoryDTO.Id);
-                    var category = _mapper.Map(categoryDTO, entity);
-                    category.UpdatedDate = DateTime.Now;
+                    if (await _genericRepo.GetById(categoryDTO.Id) is not null)
+                    {
+                        var entity = await _genericRepo.GetById(categoryDTO.Id);
+                        var category = _mapper.Map(categoryDTO, entity);
+                        category.UpdatedDate = DateTime.Now;
 
-                    _genericRepo.Update(category);
-                    await _genericRepo.Commit();
+                        _genericRepo.Update(category);
+                        await _genericRepo.Commit();
 
-                    res.Success(true);
+                        res.Success(true);
+                        return res;
+                    }
+
+                    res.Error(400, "Category does not exist!");
                     return res;
                 }
-
-                res.Error(400, "Category does not exist!");
+                res.Error(400, "Invalid information!");
                 return res;
             }
             catch (Exception ex)
