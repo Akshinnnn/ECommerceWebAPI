@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using Data.Entities;
+using FluentValidation;
 using Logic.JWTService;
 using Logic.Models.DTO.UserDTO;
 using Logic.Models.EmailConfigurationModel;
 using Logic.Models.GenericResponseModel;
 using Logic.Models.JWTContentModel;
 using Logic.Repository;
+using Logic.Validators;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -32,12 +34,16 @@ namespace Logic.Services.Implementations
         private readonly IEmailService _emailService;
         private readonly IMessageService _messageService;
         private readonly IGenericRepository<User> _userRepo;
+        private readonly IValidator<RegisterUserDTO> _registerValidator;
+        private readonly IValidator<LoginUserDTO> _loginValidator;
 
         public UserService(UserManager<User> userManager, SignInManager<User> signInManager,
             IMapper mapper, IConfiguration config,
             ITokenService tokenService,
             IEmailService emailService,
-            IMessageService messageService, IGenericRepository<User> userRepo)
+            IMessageService messageService, IGenericRepository<User> userRepo,
+            IValidator<LoginUserDTO> loginValidator,
+            IValidator<RegisterUserDTO> registerValidator)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -47,6 +53,8 @@ namespace Logic.Services.Implementations
             _emailService = emailService;
             _messageService = messageService;
             _userRepo = userRepo;
+            _loginValidator = loginValidator;
+            _registerValidator = registerValidator;
         }
 
         public async Task<GenericResponse<bool>> ConfirmEmail(string email, string token)
@@ -111,34 +119,39 @@ namespace Logic.Services.Implementations
         public async Task<GenericResponse<TokenContent>> Login(LoginUserDTO userDTO)
         {
             GenericResponse<TokenContent> res = new GenericResponse<TokenContent>();
-
+            var validator = await _loginValidator.ValidateAsync(userDTO);
             try
             {
-                var user = await _userManager.FindByEmailAsync(userDTO.Email);
-
-                if (user is not null)
+                if (validator.IsValid)
                 {
-                    Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(user, userDTO.Password, true, false);
+                    var user = await _userManager.FindByEmailAsync(userDTO.Email);
 
-                    if (result.Succeeded)
+                    if (user is not null)
                     {
-                        var tokenContent = new JWTHelper().GenerateToken(_config, user);
+                        Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(user, userDTO.Password, true, false);
 
-                        user.RefreshToken = tokenContent.RefreshToken;
+                        if (result.Succeeded)
+                        {
+                            var tokenContent = new JWTHelper().GenerateToken(_config, user);
 
-                        await _userManager.UpdateAsync(user);
+                            user.RefreshToken = tokenContent.RefreshToken;
 
-                        await _tokenService.AddToken(user.Id, tokenContent.AccessToken!);
+                            await _userManager.UpdateAsync(user);
 
-                        res.Success(tokenContent);
+                            await _tokenService.AddToken(user.Id, tokenContent.AccessToken!);
+
+                            res.Success(tokenContent);
+                            return res;
+                        }
+
+                        res.Error(400, "Email or password is not correct!");
                         return res;
                     }
 
                     res.Error(400, "Email or password is not correct!");
                     return res;
                 }
-
-                res.Error(400, "Email or password is not correct!");
+                res.Error(400, "Invalid property!");
                 return res;
             }
             catch (Exception ex)
@@ -174,35 +187,40 @@ namespace Logic.Services.Implementations
         public async Task<GenericResponse<bool>> Register(RegisterUserDTO userDTO)
         {
             GenericResponse<bool> res = new GenericResponse<bool>();
-
+            var validator = await _registerValidator.ValidateAsync(userDTO);
             try
-            {                
-                if (await _userManager.FindByNameAsync(userDTO.UserName) is null)
+            {
+                if (validator.IsValid)
                 {
-                    if (userDTO.Password.Equals(userDTO.PasswordConfirmation))
+                    if (await _userManager.FindByNameAsync(userDTO.UserName) is null)
                     {
-                        var user = _mapper.Map<User>(userDTO);
-                        var result = await _userManager.CreateAsync(user, userDTO.Password);
-
-                        if (result.Succeeded)
+                        if (userDTO.Password.Equals(userDTO.PasswordConfirmation))
                         {
-                            await _userManager.AddToRoleAsync(user, "User");
+                            var user = _mapper.Map<User>(userDTO);
+                            var result = await _userManager.CreateAsync(user, userDTO.Password);
 
-                            var message = await _messageService.GenerateMessage(user);
-                            await _emailService.SendEmail(message);
+                            if (result.Succeeded)
+                            {
+                                await _userManager.AddToRoleAsync(user, "User");
 
-                            res.Success(true);
+                                var message = await _messageService.GenerateMessage(user);
+                                await _emailService.SendEmail(message);
+
+                                res.Success(true);
+                                return res;
+                            }
+
+                            res.Error(400, "Failed to register");
                             return res;
                         }
 
-                        res.Error(400, "Failed to register");
+                        res.Error(400, "Passwords do not match!");
                         return res;
                     }
-
-                    res.Error(400, "Passwords do not match!");
+                    res.Error(400, $"Username {userDTO.UserName} is taken!");
                     return res;
                 }
-                res.Error(400, $"Username {userDTO.UserName} is taken!");
+                res.Error(400, $"Invalid property!");
                 return res;
             }
             catch (Exception ex)

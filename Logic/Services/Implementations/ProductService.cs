@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Data.Entities;
+using FluentValidation;
 using Logic.Models.DTO.ProductDTO;
 using Logic.Models.GenericResponseModel;
 using Logic.Repository;
@@ -17,20 +18,26 @@ namespace Logic.Services.Implementations
     {
         private readonly IGenericRepository<Product> _genericRepo;
         private readonly IMapper _mapper;
+        private readonly IValidator<AddProductDTO> _addProductValidator;
+        private readonly IValidator<UpdateProductDTO> _updateProductValidator;
 
-        public ProductService(IGenericRepository<Product> genericRepo, IMapper mapper)
+        public ProductService(IGenericRepository<Product> genericRepo, IMapper mapper,
+            IValidator<UpdateProductDTO> updateProductValidator,
+            IValidator<AddProductDTO> addProductValidator)
         {
             _genericRepo = genericRepo;
             _mapper = mapper;
+            _updateProductValidator = updateProductValidator;
+            _addProductValidator = addProductValidator;
         }
 
         public async Task<GenericResponse<bool>> Add(AddProductDTO productDTO)
         {
             var response = new GenericResponse<bool>();
-
+            var validator = await _addProductValidator.ValidateAsync(productDTO);
             try
             {
-                if (productDTO is not null)
+                if (validator.IsValid)
                 {
                     var entity = _mapper.Map<Product>(productDTO);
 
@@ -133,23 +140,28 @@ namespace Logic.Services.Implementations
         public async Task<GenericResponse<bool>> Update(UpdateProductDTO productDTO)
         {
             var response = new GenericResponse<bool>();
-
+            var validator = await _updateProductValidator.ValidateAsync(productDTO);
             try
             {
-                if (await _genericRepo.GetById(productDTO.Id) is not null)
+                if (validator.IsValid)
                 {
-                    var entity = await _genericRepo.GetById(productDTO.Id);
-                    var product = _mapper.Map(productDTO, entity);
-                    product.UpdatedDate = DateTime.Now;
+                    if (await _genericRepo.GetById(productDTO.Id) is not null)
+                    {
+                        var entity = await _genericRepo.GetById(productDTO.Id);
+                        var product = _mapper.Map(productDTO, entity);
+                        product.UpdatedDate = DateTime.Now;
 
-                    _genericRepo.Update(product);
-                    await _genericRepo.Commit();
+                        _genericRepo.Update(product);
+                        await _genericRepo.Commit();
 
-                    response.Success(true);
+                        response.Success(true);
+                        return response;
+                    }
+
+                    response.Error(400, "Product does not exist!");
                     return response;
                 }
-
-                response.Error(400, "Product does not exist!");
+                response.Error(400, "Invalid information!");
                 return response;
             }
             catch (Exception ex)

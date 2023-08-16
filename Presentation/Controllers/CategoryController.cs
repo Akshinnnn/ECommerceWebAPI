@@ -1,5 +1,7 @@
-﻿using Logic.Models.DTO.CategoryDTO;
+﻿using FluentValidation;
+using Logic.Models.DTO.CategoryDTO;
 using Logic.Services;
+using Logic.Validators;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 

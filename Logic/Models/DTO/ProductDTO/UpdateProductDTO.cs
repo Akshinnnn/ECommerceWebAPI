@@ -10,9 +10,6 @@ namespace Logic.Models.DTO.ProductDTO
         public int? DiscountPercent { get; set; }
         public int Quantity { get; set; }
         public int SubCategoryId { get; set; }
-        public int CompanyId { get; set; }
-
-        public ICollection<ProductInformation> ProductInformations { get; set; }
-        public ICollection<ProductImage> Images { get; set; }
+        public int ProductionCompanyId { get; set; }
     }
 }

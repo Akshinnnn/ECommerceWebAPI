@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Data.Entities;
+using FluentValidation;
 using Logic.Models.DTO.ProductInfoDTO;
 using Logic.Models.GenericResponseModel;
 using Logic.Repository;
@@ -16,20 +17,26 @@ namespace Logic.Services.Implementations
     {
         private readonly IGenericRepository<ProductInformation> _genericRepo;
         private readonly IMapper _mapper;
+        private readonly IValidator<AddProductInfoDTO> _addInfoValidator;
+        private readonly IValidator<UpdateProductInfoDTO> _updateInfoValidator;
 
-        public ProductInfoService(IGenericRepository<ProductInformation> genericRepo, IMapper mapper)
+        public ProductInfoService(IGenericRepository<ProductInformation> genericRepo, IMapper mapper,
+            IValidator<UpdateProductInfoDTO> updateInfoValidator,
+            IValidator<AddProductInfoDTO> addInfoValidator)
         {
             _genericRepo = genericRepo;
             _mapper = mapper;
+            _updateInfoValidator = updateInfoValidator;
+            _addInfoValidator = addInfoValidator;
         }
 
         public async Task<GenericResponse<bool>> Add(AddProductInfoDTO productInfoDTO)
         {
             var res = new GenericResponse<bool>();
-
+            var validator = await _addInfoValidator.ValidateAsync(productInfoDTO);
             try
             {
-                if (productInfoDTO is not null)
+                if (validator.IsValid)
                 {
                     var entity = _mapper.Map<ProductInformation>(productInfoDTO);
 
@@ -130,22 +137,27 @@ namespace Logic.Services.Implementations
         public async Task<GenericResponse<bool>> Update(UpdateProductInfoDTO productInfoDTO)
         {
             var res = new GenericResponse<bool>();
-
+            var validator = await _updateInfoValidator.ValidateAsync(productInfoDTO);
             try
             {
-                if (await _genericRepo.GetById(productInfoDTO.Id) is not null)
+                if (validator.IsValid)
                 {
-                    var entity = await _genericRepo.GetById(productInfoDTO.Id);
-                    var info = _mapper.Map(productInfoDTO, entity);
-                    info.UpdatedDate = DateTime.Now;
+                    if (await _genericRepo.GetById(productInfoDTO.Id) is not null)
+                    {
+                        var entity = await _genericRepo.GetById(productInfoDTO.Id);
+                        var info = _mapper.Map(productInfoDTO, entity);
+                        info.UpdatedDate = DateTime.Now;
 
-                    _genericRepo.Update(info);
-                    await _genericRepo.Commit();
+                        _genericRepo.Update(info);
+                        await _genericRepo.Commit();
 
-                    res.Success(true);
+                        res.Success(true);
+                        return res;
+                    }
+                    res.Error(400, "Information does not exist!");
                     return res;
                 }
-                res.Error(400, "Information does not exist!");
+                res.Error(400, "Invalid property!");
                 return res;
             }
             catch (Exception ex)
