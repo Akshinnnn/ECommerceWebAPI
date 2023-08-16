@@ -7,6 +7,7 @@ using Logic.Repository;
 using Logic.Repository.Implementations;
 using Logic.Validators;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,21 +20,28 @@ namespace Logic.Services.Implementations
     {
         private readonly IGenericRepository<Category> _genericRepo;
         private readonly IMapper _mapper;
+        private IValidator<AddCategoryDTO> _validatorAddCategory;
+        private IValidator<UpdateCategoryDTO> _validatorUpdateCategory;
 
-        public CategoryService(IGenericRepository<Category> genericRepo, IMapper mapper)
+        public CategoryService(IGenericRepository<Category> genericRepo, IMapper mapper,
+            IValidator<AddCategoryDTO> validatorAddCategory,
+            IValidator<UpdateCategoryDTO> validatorUpdateCategory)
         {
             _genericRepo = genericRepo;
             _mapper = mapper;
+            _validatorAddCategory = validatorAddCategory;
+            _validatorUpdateCategory = validatorUpdateCategory;
         }
 
         public async Task<GenericResponse<bool>> AddCategory(AddCategoryDTO categoryDTO)
         {
             var res = new GenericResponse<bool>();
-            var validator = new AddCategoryValidator().Validate(categoryDTO);
-            
+
             try
             {
-                if (validator.IsValid)
+                var validateResult = await _validatorAddCategory.ValidateAsync(categoryDTO);
+
+                if (validateResult.IsValid)
                 {
                     var entity = _mapper.Map<Category>(categoryDTO);
                     await _genericRepo.Add(entity);
@@ -43,7 +51,7 @@ namespace Logic.Services.Implementations
                     return res;
                 }
 
-                res.Error(400, validator.Errors.FirstOrDefault().ToString());
+                res.Error(400, "Invalid property");
                 return res;
             }
             catch(Exception ex)
@@ -139,11 +147,10 @@ namespace Logic.Services.Implementations
         public async Task<GenericResponse<bool>> UpdateCategory(UpdateCategoryDTO categoryDTO)
         {
             var res = new GenericResponse<bool>();
-            var validator = new UpdateCategoryValidator().Validate(categoryDTO);
-
+            var validationResult = await _validatorUpdateCategory.ValidateAsync(categoryDTO);
             try
             {
-                if (validator.IsValid)
+                if (validationResult.IsValid)
                 {
                     if (await _genericRepo.GetById(categoryDTO.Id) is not null)
                     {

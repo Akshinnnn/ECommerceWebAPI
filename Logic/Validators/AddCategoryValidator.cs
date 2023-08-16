@@ -14,14 +14,8 @@ namespace Logic.Validators
         public AddCategoryValidator()
         {
             RuleFor(c => c.CategoryName)
-                .NotEmpty()
-                .NotNull()
-                .WithMessage("Category name can not be empty!");
-
-            RuleFor(c => c.CategoryName)
-                .MaximumLength(100)
-                .WithMessage("Length of category name can not exceed 100 characters!");
+                 .NotEmpty().WithMessage("Category name can not be empty!")
+                 .MaximumLength(100).WithMessage("Length of category name can not exceed 100 characters!");               
         }
     }
-    
 }

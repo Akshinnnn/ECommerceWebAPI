@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Data.Entities;
+using FluentValidation;
 using Logic.Models.DTO.ProductionCompanyDTO;
 using Logic.Models.GenericResponseModel;
 using Logic.Repository;
@@ -16,6 +17,8 @@ namespace Logic.Services.Implementations
     {
         private readonly IGenericRepository<ProductionCompany> _genericRepo;
         private readonly IMapper _mapper;
+        private readonly IValidator<AddCompanyDTO> _addCompanyValidator;
+        private readonly IValidator<UpdateCompanyDTO> _updateCompanyValidator;
 
         public ProductionCompanyService(IGenericRepository<ProductionCompany> genericRepo, IMapper mapper)
         {
@@ -26,10 +29,10 @@ namespace Logic.Services.Implementations
         public async Task<GenericResponse<bool>> Add(AddCompanyDTO companyDTO)
         {
             var res = new GenericResponse<bool>();
-
+            var validator = await _addCompanyValidator.ValidateAsync(companyDTO);   
             try
             {
-                if (companyDTO is not null)
+                if (validator.IsValid)
                 {
                     var company = _mapper.Map<ProductionCompany>(companyDTO);
 
@@ -132,22 +135,27 @@ namespace Logic.Services.Implementations
         public async Task<GenericResponse<bool>> Update(UpdateCompanyDTO companyDTO)
         {
             var res = new GenericResponse<bool>();
-
+            var validator = await _updateCompanyValidator.ValidateAsync(companyDTO);
             try
             {
-                if (await _genericRepo.GetById(companyDTO.Id) is not null)
+                if (validator.IsValid)
                 {
-                    var entity = await _genericRepo.GetById(companyDTO.Id);
-                    var company = _mapper.Map(companyDTO, entity);
-                    entity.UpdatedDate = DateTime.Now;
+                    if (await _genericRepo.GetById(companyDTO.Id) is not null)
+                    {
+                        var entity = await _genericRepo.GetById(companyDTO.Id);
+                        var company = _mapper.Map(companyDTO, entity);
+                        entity.UpdatedDate = DateTime.Now;
 
-                    _genericRepo.Update(entity);
-                    await _genericRepo.Commit();
+                        _genericRepo.Update(entity);
+                        await _genericRepo.Commit();
 
-                    res.Success(true);
+                        res.Success(true);
+                        return res;
+                    }
+                    res.Error(400, "Company does not exist!");
                     return res;
                 }
-                res.Error(400, "Company does not exist!");
+                res.Error(400, "Invalid properties!");
                 return res;
             }
             catch (Exception ex)

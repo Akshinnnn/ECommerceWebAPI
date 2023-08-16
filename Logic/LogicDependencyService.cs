@@ -1,4 +1,5 @@
 ﻿using Data.DAL;
+using FluentValidation;
 using Logic.Mapper;
 using Logic.Models.EmailConfigurationModel;
 using Logic.Repository;
@@ -27,7 +28,7 @@ namespace Logic
             //Taking values from appsettings 
             services.Configure<EmailConfigModel>(config.GetSection("EmailConfiguration"));
             
-
+            
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<ISubCategoryService, SubCategoryService>();
@@ -38,8 +39,7 @@ namespace Logic
             services.AddTransient<IMessageService, MessageService>();
             services.AddTransient<IEmailService, EmailService>();
             services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IRoleService, RoleService>();
-
+            services.AddScoped<IRoleService, RoleService>();           
 
             //JWT configuration:
             services.AddAuthentication(a =>

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Data.Entities;
+using FluentValidation;
 using Logic.Models.DTO.CategoryDTO;
 using Logic.Models.DTO.SubCategoryDTO;
 using Logic.Models.GenericResponseModel;
@@ -17,20 +18,26 @@ namespace Logic.Services.Implementations
     {
         private readonly IGenericRepository<SubCategory> _genericRepo;
         private readonly IMapper _mapper;
+        private readonly IValidator<AddSubCategoryDTO> _validatorAddSubCategory;
+        private readonly IValidator<UpdateSubCategoryDTO> _validatorUpdateSubCategory;
 
-        public SubCategoryService(IGenericRepository<SubCategory> genericRepo, IMapper mapper)
+        public SubCategoryService(IGenericRepository<SubCategory> genericRepo, IMapper mapper,
+            IValidator<AddSubCategoryDTO> validatorAddSubCategory,
+            IValidator<UpdateSubCategoryDTO> validatorUpdateSubCategory)
         {
             _genericRepo  = genericRepo;
             _mapper = mapper;
+            _validatorAddSubCategory = validatorAddSubCategory;
+            _validatorUpdateSubCategory = validatorUpdateSubCategory;
         }
 
         public async Task<GenericResponse<bool>> AddSubCategory(AddSubCategoryDTO subCategoryDTO)
         {
             GenericResponse<bool> res = new GenericResponse<bool>();
-
+            var validator = await _validatorAddSubCategory.ValidateAsync(subCategoryDTO);
             try
             {
-                if (subCategoryDTO.SubCategoryName is not null)
+                if (validator.IsValid)
                 {
                     var entity = _mapper.Map<SubCategory>(subCategoryDTO);
                     await _genericRepo.Add(entity);
@@ -128,22 +135,27 @@ namespace Logic.Services.Implementations
         public async Task<GenericResponse<bool>> UpdateSubCategory(UpdateSubCategoryDTO subCategoryDTO)
         {
             GenericResponse<bool> res = new GenericResponse<bool>();
-
+            var validator = await _validatorUpdateSubCategory.ValidateAsync(subCategoryDTO);
             try
             {
-                if (await _genericRepo.GetById(subCategoryDTO.Id) is not null)
+                if (validator.IsValid)
                 {
-                    var entity = await _genericRepo.GetById(subCategoryDTO.Id);
-                    var category = _mapper.Map(subCategoryDTO, entity);
-                    category.UpdatedDate = DateTime.Now;
+                    if (await _genericRepo.GetById(subCategoryDTO.Id) is not null)
+                    {
+                        var entity = await _genericRepo.GetById(subCategoryDTO.Id);
+                        var category = _mapper.Map(subCategoryDTO, entity);
+                        category.UpdatedDate = DateTime.Now;
 
-                    _genericRepo.Update(category);
-                    await _genericRepo.Commit();
+                        _genericRepo.Update(category);
+                        await _genericRepo.Commit();
 
-                    res.Success(true);
+                        res.Success(true);
+                        return res;
+                    }
+                    res.Error(400, "SubCategory does not exist!");
                     return res;
                 }
-                res.Error(400, "SubCategory does not exist!");
+                res.Error(400, "Invalid property!");
                 return res;
             }
             catch (Exception ex)
