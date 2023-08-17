@@ -19,10 +19,8 @@ namespace Logic.Services.Implementations
             _userManager = userManager;
         }
 
-        public async Task<Message> GenerateMessage(User user)
-        {
-            var token = HttpUtility.UrlEncode(await _userManager.GenerateEmailConfirmationTokenAsync(user));
-            var link = $"https://localhost:44381/api/User/ConfirmEmail?email={user.Email}&token={token}";
+        public async Task<Message> GenerateMessage(User user, string link)
+        {       
             var message = new Message(new List<string>() { user.Email! }, "EMaghazin Email confirmation!", link!);
 
             return message;

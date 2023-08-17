@@ -3,6 +3,7 @@ using Data.Entities;
 using Logic.JWTService;
 using Logic.Models.DTO.UserDTO;
 using Logic.Models.EmailConfigurationModel;
+using Logic.Models.ResetPasswordModel;
 using Logic.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -49,6 +50,27 @@ namespace Presentation.Controllers
         public async Task<IActionResult> SoftDelete()
         {
             var res = await _userService.SoftDelete(User.FindFirstValue("UserId"));
+            return StatusCode(res.StatusCode, res);
+        }
+
+        [HttpPost("ForgotPassword")]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+            var res = await _userService.ForgotPassword(email);
+            return StatusCode(res.StatusCode, res);
+        }
+
+        [HttpPost("ResetPassword")]
+        public async Task<IActionResult> ResetPassword([FromBody]ResetPasswordDTO resetPasswordDTO)
+        {
+            var res = await _userService.ResetPassword(resetPasswordDTO);
+            return StatusCode(res.StatusCode, res);
+        }
+
+        [HttpGet("GetResetPasswordModel")]
+        public IActionResult GetResetPasswordModel(string email, string token)
+        {
+            var res = _userService.GetResetPassword(email, token);
             return StatusCode(res.StatusCode, res);
         }
 

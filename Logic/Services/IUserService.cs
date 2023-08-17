@@ -2,6 +2,7 @@
 using Logic.Models.DTO.UserDTO;
 using Logic.Models.GenericResponseModel;
 using Logic.Models.JWTContentModel;
+using Logic.Models.ResetPasswordModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,5 +19,8 @@ namespace Logic.Services
         Task<GenericResponse<bool>> ConfirmEmail(string email, string token);
         Task<GenericResponse<IEnumerable<GetUserDTO>>> GetUsers();
         Task<GenericResponse<TokenContent>> RefreshTheToken(string resfreshToken);
+        Task<GenericResponse<bool>> ForgotPassword(string email);
+        GenericResponse<ResetPasswordDTO> GetResetPassword(string email, string token);
+        Task<GenericResponse<bool>> ResetPassword(ResetPasswordDTO resetPasswordDTO);
     }
 }
