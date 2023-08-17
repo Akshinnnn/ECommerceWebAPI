@@ -6,6 +6,7 @@ using Logic.Models.DTO.UserDTO;
 using Logic.Models.EmailConfigurationModel;
 using Logic.Models.GenericResponseModel;
 using Logic.Models.JWTContentModel;
+using Logic.Models.ResetPasswordModel;
 using Logic.Repository;
 using Logic.Validators;
 using Microsoft.AspNetCore.Identity;
@@ -21,6 +22,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace Logic.Services.Implementations
 {
@@ -77,6 +79,55 @@ namespace Logic.Services.Implementations
                     return response;
                 }
                 response.Error(400, "Failed to confirm an email!");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.InternalError();
+            }
+            return response;
+        }
+
+        public async Task<GenericResponse<bool>> ForgotPassword(string email)
+        {
+            GenericResponse<bool> response = new GenericResponse<bool>();
+
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(email);
+
+                if (user is not null)
+                {
+                    var token = HttpUtility.UrlEncode(await _userManager.GeneratePasswordResetTokenAsync(user));
+                    var forgotPasswordLink = $"https://localhost:44381/api/User/GetResetPassword?email={user.Email}&token={token}";
+                    var message = await _messageService.GenerateMessage(user, forgotPasswordLink);
+                    await _emailService.SendEmail(message);
+
+                    response.Success(true);
+                    return response;
+                }
+                response.Error(400, "User does not exist!");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                response.InternalError();
+            }
+            return response;
+        }
+
+        public GenericResponse<ResetPasswordDTO> GetResetPassword(string email, string token)
+        {
+            GenericResponse<ResetPasswordDTO> response = new GenericResponse<ResetPasswordDTO>();
+
+            try
+            {
+                var resetPasswordModel = new ResetPasswordDTO()
+                {
+                    Token = token,
+                    Email = email,
+                };
+                response.Success(resetPasswordModel);
                 return response;
             }
             catch (Exception ex)
@@ -203,7 +254,9 @@ namespace Logic.Services.Implementations
                             {
                                 await _userManager.AddToRoleAsync(user, "User");
 
-                                var message = await _messageService.GenerateMessage(user);
+                                var token = HttpUtility.UrlEncode(await _userManager.GenerateEmailConfirmationTokenAsync(user));
+                                var confirmEmailLink = $"https://localhost:44381/api/User/ConfirmEmail?email={user.Email}&token={token}";
+                                var message = await _messageService.GenerateMessage(user, confirmEmailLink);
                                 await _emailService.SendEmail(message);
 
                                 res.Success(true);
@@ -221,6 +274,37 @@ namespace Logic.Services.Implementations
                     return res;
                 }
                 res.Error(400, $"Invalid property!");
+                return res;
+            }
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
+        }
+
+        public async Task<GenericResponse<bool>> ResetPassword(ResetPasswordDTO resetPasswordDTO)
+        {
+            GenericResponse<bool> res = new GenericResponse<bool>();
+
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(resetPasswordDTO.Email);
+
+                if (user is not null)
+                {
+                    if (resetPasswordDTO.NewPassword == resetPasswordDTO.ConfirmPassword)
+                    {
+                        var resetPasswordResult = await _userManager
+                            .ResetPasswordAsync(user, resetPasswordDTO.Token, resetPasswordDTO.NewPassword);
+
+                        res.Success(true);
+                        return res;
+                    }
+                    res.Error(400, "Passwords do not match!");
+                    return res;
+                }
+                res.Error(400, "User does not exist!");
                 return res;
             }
             catch (Exception ex)

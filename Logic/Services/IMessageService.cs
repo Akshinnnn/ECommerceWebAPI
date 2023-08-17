@@ -10,6 +10,6 @@ namespace Logic.Services
 {
     public interface IMessageService
     {
-        public Task<Message> GenerateMessage(User user);
+        public Task<Message> GenerateMessage(User user, string link);
     }
 }
