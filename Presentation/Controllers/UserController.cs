@@ -46,6 +46,13 @@ namespace Presentation.Controllers
             return StatusCode(res.StatusCode, res);
         }
 
+        [HttpPatch("UpdateAccount")]
+        public async Task<IActionResult> UpdateAccount([FromBody] UpdateUserDTO userDTO)
+        {
+            var res = await _userService.Update(userDTO);
+            return StatusCode(res.StatusCode, res);
+        }
+
         [HttpPatch("DeleteAccount")]
         public async Task<IActionResult> SoftDelete()
         {

@@ -38,6 +38,7 @@ namespace Logic.Services.Implementations
         private readonly IGenericRepository<User> _userRepo;
         private readonly IValidator<RegisterUserDTO> _registerValidator;
         private readonly IValidator<LoginUserDTO> _loginValidator;
+        private readonly IValidator<UpdateUserDTO> _updateValidator;
 
         public UserService(UserManager<User> userManager, SignInManager<User> signInManager,
             IMapper mapper, IConfiguration config,
@@ -45,7 +46,8 @@ namespace Logic.Services.Implementations
             IEmailService emailService,
             IMessageService messageService, IGenericRepository<User> userRepo,
             IValidator<LoginUserDTO> loginValidator,
-            IValidator<RegisterUserDTO> registerValidator)
+            IValidator<RegisterUserDTO> registerValidator,
+            IValidator<UpdateUserDTO> updateValidator)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -57,6 +59,7 @@ namespace Logic.Services.Implementations
             _userRepo = userRepo;
             _loginValidator = loginValidator;
             _registerValidator = registerValidator;
+            _updateValidator = updateValidator;
         }
 
         public async Task<GenericResponse<bool>> ConfirmEmail(string email, string token)
@@ -331,6 +334,32 @@ namespace Logic.Services.Implementations
                     return res;
                 }
                 res.Error(400, "User does not exist!");
+                return res;
+            }
+            catch (Exception ex)
+            {
+                res.InternalError();
+            }
+            return res;
+        }
+
+        public async Task<GenericResponse<bool>> Update(UpdateUserDTO userDTO)
+        {
+            var res = new GenericResponse<bool>();
+            var validator = await _updateValidator.ValidateAsync(userDTO);
+            try
+            {
+                if (validator.IsValid)
+                {
+                    var entity = await _userManager.FindByIdAsync(userDTO.Id);
+                    var user = _mapper.Map(userDTO, entity);
+
+                    await _userManager.UpdateAsync(user);
+
+                    res.Success(true);
+                    return res;
+                }
+                res.Error(400, "Invalid property!");
                 return res;
             }
             catch (Exception ex)

@@ -22,5 +22,6 @@ namespace Logic.Services
         Task<GenericResponse<bool>> ForgotPassword(string email);
         GenericResponse<ResetPasswordDTO> GetResetPassword(string email, string token);
         Task<GenericResponse<bool>> ResetPassword(ResetPasswordDTO resetPasswordDTO);
+        Task<GenericResponse<bool>> Update(UpdateUserDTO userDTO);
     }
 }
