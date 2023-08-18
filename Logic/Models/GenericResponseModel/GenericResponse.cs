@@ -29,7 +29,7 @@ namespace Logic.Models.GenericResponseModel
         public void InternalError()
         {
             Errors = null;
-            Data=  default(T);
+            Data =  default(T);
             StatusCode = 500;
         }
     }
