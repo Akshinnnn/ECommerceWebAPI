@@ -5,6 +5,7 @@ using Logic.Validators;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Presentation.Middlewares;
 using Serilog;
 using System.Reflection;
 
@@ -18,13 +19,21 @@ namespace Presentation
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
 
+            services.AddTransient<GlobalExceptionHandler>();
+
             services.AddValidatorsFromAssemblyContaining<AddCategoryValidator>();
 
             services.Configure<ApiBehaviorOptions>(options =>
             {
                 options.SuppressModelStateInvalidFilter = true;
             });
-            
+
+            services.AddLogging(lb =>
+            {
+                lb.ClearProviders();
+                lb.AddSerilog();
+            });
+
             return services;
         }
     }

@@ -35,8 +35,6 @@ namespace Logic.Services.Implementations
         {
             GenericResponse<bool> res = new GenericResponse<bool>();
             var validator = await _validatorAddSubCategory.ValidateAsync(subCategoryDTO);
-            try
-            {
                 if (validator.IsValid)
                 {
                     var entity = _mapper.Map<SubCategory>(subCategoryDTO);
@@ -48,12 +46,6 @@ namespace Logic.Services.Implementations
                 }
                 res.Error(400, "Failed to add an entity!");
                 return res;
-            }
-            catch (Exception ex)
-            {
-                res.InternalError();
-            }
-            return res;
         }
 
         public async Task<GenericResponse<IEnumerable<GetSubCategoryDTO>>> GetSubCategories()

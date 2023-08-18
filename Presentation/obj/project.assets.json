@@ -5356,6 +5356,7 @@
       "Microsoft.AspNetCore.OpenApi >= 7.0.2",
       "Microsoft.EntityFrameworkCore.Design >= 7.0.9",
       "Serilog.AspNetCore >= 7.0.0",
+      "Serilog.Settings.Configuration >= 7.0.0",
       "Serilog.Sinks.MSSqlServer >= 6.3.0",
       "Swashbuckle.AspNetCore >= 6.4.0"
     ]
@@ -5419,6 +5420,10 @@
             "version": "[7.0.9, )"
           },
           "Serilog.AspNetCore": {
+            "target": "Package",
+            "version": "[7.0.0, )"
+          },
+          "Serilog.Settings.Configuration": {
             "target": "Package",
             "version": "[7.0.0, )"
           },
