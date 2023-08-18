@@ -102,7 +102,7 @@ namespace Logic.Services.Implementations
                 if (user is not null)
                 {
                     var token = HttpUtility.UrlEncode(await _userManager.GeneratePasswordResetTokenAsync(user));
-                    var forgotPasswordLink = $"https://localhost:44381/api/User/GetResetPassword?email={user.Email}&token={token}";
+                    var forgotPasswordLink = $"https://localhost:44381/api/User/GetResetPasswordModel?email={user.Email}&token={token}";
                     var message = await _messageService.GenerateMessage(user, forgotPasswordLink);
                     await _emailService.SendEmail(message);
 

@@ -1,6 +1,7 @@
 using Data;
 using Logic;
 using Presentation;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 var Configuration = builder.Configuration;
@@ -10,6 +11,12 @@ var Configuration = builder.Configuration;
 builder.Services.DataServices(Configuration);
 builder.Services.LogicServices(Configuration);
 builder.Services.PresentationServices();
+
+//Serilog configuration
+builder.Host.UseSerilog((context, config) =>
+{
+    config.ReadFrom.Configuration(context.Configuration);
+});
 
 var app = builder.Build();
 

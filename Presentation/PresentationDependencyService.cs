@@ -5,6 +5,7 @@ using Logic.Validators;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using System.Reflection;
 
 namespace Presentation
@@ -23,7 +24,7 @@ namespace Presentation
             {
                 options.SuppressModelStateInvalidFilter = true;
             });
-
+            
             return services;
         }
     }
