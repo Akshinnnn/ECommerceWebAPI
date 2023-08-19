@@ -90,12 +90,12 @@ namespace Logic.Services.Implementations
 
             var user = await _userManager.FindByEmailAsync(email);
 
-            if (user is not null)
-            {
-                var token = HttpUtility.UrlEncode(await _userManager.GeneratePasswordResetTokenAsync(user));
-                var forgotPasswordLink = $"https://localhost:44381/api/User/GetResetPassword?email={user.Email}&token={token}";
-                var message = await _messageService.GenerateMessage(user, forgotPasswordLink);
-                await _emailService.SendEmail(message);
+                if (user is not null)
+                {
+                    var token = HttpUtility.UrlEncode(await _userManager.GeneratePasswordResetTokenAsync(user));
+                    var forgotPasswordLink = $"https://localhost:44381/api/User/GetResetPassword?email={user.Email}&token={token}";
+                    var message = await _messageService.GenerateMessage(user, forgotPasswordLink);
+                    await _emailService.SendEmail(message);
 
                 response.Success(true);
                 return response;

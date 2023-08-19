@@ -24,7 +24,7 @@ namespace Logic.Services.Implementations
                 Subject = message.Subject,
                 Body = new TextPart(MimeKit.Text.TextFormat.Text) { Text = message.Content }
             };
-            emailMessage.From.Add(new MailboxAddress("email", _emailConfig.EmailFrom));
+            emailMessage.From.Add(new MailboxAddress("EMaghazin", _emailConfig.EmailFrom));
             emailMessage.To.AddRange(message.EmailTo);
 
             return emailMessage;

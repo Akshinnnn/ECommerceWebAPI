@@ -21,7 +21,7 @@ namespace Logic.Services.Implementations
 
         public async Task<Message> GenerateMessage(User user, string link)
         {       
-            var message = new Message(new List<string>() { user.Email! }, "EMaghazin Email confirmation!", link!);
+            var message = new Message(new List<string>() { user.Email! }, "Account confirmation link!", link!);
 
             return message;
         }
