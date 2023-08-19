@@ -35,139 +35,105 @@ namespace Logic.Services.Implementations
         {
             var response = new GenericResponse<bool>();
             var validator = await _addProductValidator.ValidateAsync(productDTO);
-            try
+
+            if (validator.IsValid)
             {
-                if (validator.IsValid)
-                {
-                    var entity = _mapper.Map<Product>(productDTO);
+                var entity = _mapper.Map<Product>(productDTO);
 
-                    await _genericRepo.Add(entity);
-                    await _genericRepo.Commit();
+                await _genericRepo.Add(entity);
+                await _genericRepo.Commit();
 
-                    response.Success(true);
-                    return response;
-                }
-
-                response.Error(400, "Invalid information added!");
+                response.Success(true);
                 return response;
             }
-            catch (Exception ex)
-            {
-                response.InternalError();
-            }
+
+            response.Error(400, "Invalid information added!");
             return response;
+
         }
 
         public async Task<GenericResponse<GetProductDTO>> GetProductById(int id)
         {
             var response = new GenericResponse<GetProductDTO>();
 
-            try
-            {
-                var entity = await _genericRepo.GetByExpression(p => p.Id == id)
-                .Include(p => p.ProductInformations)
-                .Include(p => p.Images).FirstOrDefaultAsync();
+            var entity = await _genericRepo.GetByExpression(p => p.Id == id)
+            .Include(p => p.ProductInformations)
+            .Include(p => p.Images).FirstOrDefaultAsync();
 
-                if (entity is not null)
-                {
-                    var product = _mapper.Map<GetProductDTO>(entity);
-                    response.Success(product);
-                    return response;
-                }
-                response.Error(400, "Product does not exist!");
+            if (entity is not null)
+            {
+                var product = _mapper.Map<GetProductDTO>(entity);
+                response.Success(product);
                 return response;
             }
-            catch (Exception ex)
-            {
-                response.InternalError();
-            }
+            response.Error(400, "Product does not exist!");
             return response;
+
         }
 
         public async Task<GenericResponse<IEnumerable<GetProductDTO>>> GetProducts()
         {
             var response = new GenericResponse<IEnumerable<GetProductDTO>>();
 
-            try
+            var entities = await _genericRepo.GetAll().Include(p => p.ProductInformations)
+            .Include(p => p.Images).ToListAsync();
+
+            if (entities is not null)
             {
-                var entities = await _genericRepo.GetAll().Include(p => p.ProductInformations)
-                .Include(p => p.Images).ToListAsync();
+                var products = _mapper.Map<IEnumerable<GetProductDTO>>(entities);
 
-                if (entities is not null)
-                {
-                    var products = _mapper.Map<IEnumerable<GetProductDTO>>(entities);
-
-                    response.Success(products);
-                    return response;
-                }
-                response.Error(400, "Products do not exist!");
+                response.Success(products);
                 return response;
             }
-            catch (Exception ex)
-            {
-                response.InternalError();
-            }
+            response.Error(400, "Products do not exist!");
             return response;
+
         }
 
         public async Task<GenericResponse<bool>> SoftDelete(int id)
         {
             var response = new GenericResponse<bool>();
 
-            try
+            if (await _genericRepo.GetById(id) is not null)
             {
-                if (await _genericRepo.GetById(id) is not null)
-                {
-                    var entity = await _genericRepo.GetById(id);
-                    entity.IsDeleted = true;
+                var entity = await _genericRepo.GetById(id);
+                entity.IsDeleted = true;
 
-                    _genericRepo.Update(entity);
-                    await _genericRepo.Commit();
+                _genericRepo.Update(entity);
+                await _genericRepo.Commit();
 
-                    response.Success(true);
-                    return response;
-                }
-                response.Error(400, "Product does not exist!");
+                response.Success(true);
                 return response;
             }
-            catch (Exception ex)
-            {
-                response.InternalError();
-            }
+            response.Error(400, "Product does not exist!");
             return response;
+
         }
 
         public async Task<GenericResponse<bool>> Update(UpdateProductDTO productDTO)
         {
             var response = new GenericResponse<bool>();
             var validator = await _updateProductValidator.ValidateAsync(productDTO);
-            try
+
+            if (validator.IsValid)
             {
-                if (validator.IsValid)
+                if (await _genericRepo.GetById(productDTO.Id) is not null)
                 {
-                    if (await _genericRepo.GetById(productDTO.Id) is not null)
-                    {
-                        var entity = await _genericRepo.GetById(productDTO.Id);
-                        var product = _mapper.Map(productDTO, entity);
-                        product.UpdatedDate = DateTime.Now;
+                    var entity = await _genericRepo.GetById(productDTO.Id);
+                    var product = _mapper.Map(productDTO, entity);
+                    product.UpdatedDate = DateTime.Now;
 
-                        _genericRepo.Update(product);
-                        await _genericRepo.Commit();
+                    _genericRepo.Update(product);
+                    await _genericRepo.Commit();
 
-                        response.Success(true);
-                        return response;
-                    }
-
-                    response.Error(400, "Product does not exist!");
+                    response.Success(true);
                     return response;
                 }
-                response.Error(400, "Invalid information!");
+
+                response.Error(400, "Product does not exist!");
                 return response;
             }
-            catch (Exception ex)
-            {
-                response.InternalError();
-            }
+            response.Error(400, "Invalid information!");
             return response;
 
         }

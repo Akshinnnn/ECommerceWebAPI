@@ -25,7 +25,7 @@ namespace Logic.Services.Implementations
             IValidator<AddSubCategoryDTO> validatorAddSubCategory,
             IValidator<UpdateSubCategoryDTO> validatorUpdateSubCategory)
         {
-            _genericRepo  = genericRepo;
+            _genericRepo = genericRepo;
             _mapper = mapper;
             _validatorAddSubCategory = validatorAddSubCategory;
             _validatorUpdateSubCategory = validatorUpdateSubCategory;
@@ -35,81 +35,91 @@ namespace Logic.Services.Implementations
         {
             GenericResponse<bool> res = new GenericResponse<bool>();
             var validator = await _validatorAddSubCategory.ValidateAsync(subCategoryDTO);
-                if (validator.IsValid)
-                {
-                    var entity = _mapper.Map<SubCategory>(subCategoryDTO);
-                    await _genericRepo.Add(entity);
-                    await _genericRepo.Commit();
 
-                    res.Success(true);
-                    return res;
-                }
-                res.Error(400, "Failed to add an entity!");
+            if (validator.IsValid)
+            {
+                var entity = _mapper.Map<SubCategory>(subCategoryDTO);
+                await _genericRepo.Add(entity);
+                await _genericRepo.Commit();
+
+                res.Success(true);
                 return res;
+            }
+            res.Error(400, "Failed to add an entity!");
+            return res;
+
         }
 
         public async Task<GenericResponse<IEnumerable<GetSubCategoryDTO>>> GetSubCategories()
         {
             GenericResponse<IEnumerable<GetSubCategoryDTO>> res = new GenericResponse<IEnumerable<GetSubCategoryDTO>>();
 
-            try
+
+            var entities = await _genericRepo.GetAll().Include(c => c.Products).ToListAsync();
+
+            if (entities is not null)
             {
-                var entities = await _genericRepo.GetAll().Include(c => c.Products).ToListAsync();
+                var categories = _mapper.Map<IEnumerable<GetSubCategoryDTO>>(entities);
 
-                if (entities is not null)
-                {
-                    var categories = _mapper.Map<IEnumerable<GetSubCategoryDTO>>(entities);
-
-                    res.Success(categories);
-                    return res;
-                }
-                res.Error(400, "SubCategories do not exist!");
+                res.Success(categories);
                 return res;
             }
-            catch (Exception ex)
-            {
-                res.InternalError();
-            }
+            res.Error(400, "SubCategories do not exist!");
             return res;
+
         }
 
         public async Task<GenericResponse<GetSubCategoryDTO>> GetSubCategoryById(int id)
         {
             GenericResponse<GetSubCategoryDTO> res = new GenericResponse<GetSubCategoryDTO>();
+            var entity = await _genericRepo.GetByExpression(c => c.Id == id).Include(c => c.Products).FirstOrDefaultAsync();
 
-            try
+            if (entity is not null)
             {
-                var entity = await _genericRepo.GetByExpression(c => c.Id == id).Include(c => c.Products).FirstOrDefaultAsync();
+                var category = _mapper.Map<GetSubCategoryDTO>(entity);
 
-                if (entity is not null)
-                {
-                    var category = _mapper.Map<GetSubCategoryDTO>(entity);
-
-                    res.Success(category);
-                    return res;
-                }
-                res.Error(400, "SubCategory does not exist!");
+                res.Success(category);
                 return res;
             }
-            catch (Exception ex)
-            {
-                res.InternalError();
-            }
+            res.Error(400, "SubCategory does not exist!");
             return res;
+
         }
 
         public async Task<GenericResponse<bool>> SoftDeleteSubCategory(int id)
         {
             GenericResponse<bool> res = new GenericResponse<bool>();
 
-            try
+            if (await _genericRepo.GetById(id) is not null)
             {
-                if (await _genericRepo.GetById(id) is not null)
-                {
-                    var entity = await _genericRepo.GetById(id);
-                    entity.IsDeleted = true;
+                var entity = await _genericRepo.GetById(id);
+                entity.IsDeleted = true;
 
-                    _genericRepo.Update(entity);
+                _genericRepo.Update(entity);
+                await _genericRepo.Commit();
+
+                res.Success(true);
+                return res;
+            }
+            res.Error(400, "SubCategory does not exist!");
+            return res;
+
+        }
+
+        public async Task<GenericResponse<bool>> UpdateSubCategory(UpdateSubCategoryDTO subCategoryDTO)
+        {
+            GenericResponse<bool> res = new GenericResponse<bool>();
+            var validator = await _validatorUpdateSubCategory.ValidateAsync(subCategoryDTO);
+
+            if (validator.IsValid)
+            {
+                if (await _genericRepo.GetById(subCategoryDTO.Id) is not null)
+                {
+                    var entity = await _genericRepo.GetById(subCategoryDTO.Id);
+                    var category = _mapper.Map(subCategoryDTO, entity);
+                    category.UpdatedDate = DateTime.Now;
+
+                    _genericRepo.Update(category);
                     await _genericRepo.Commit();
 
                     res.Success(true);
@@ -117,44 +127,10 @@ namespace Logic.Services.Implementations
                 }
                 res.Error(400, "SubCategory does not exist!");
                 return res;
-            }catch(Exception ex)
-            {
-                res.InternalError();
             }
+            res.Error(400, "Invalid property!");
             return res;
-        }
 
-        public async Task<GenericResponse<bool>> UpdateSubCategory(UpdateSubCategoryDTO subCategoryDTO)
-        {
-            GenericResponse<bool> res = new GenericResponse<bool>();
-            var validator = await _validatorUpdateSubCategory.ValidateAsync(subCategoryDTO);
-            try
-            {
-                if (validator.IsValid)
-                {
-                    if (await _genericRepo.GetById(subCategoryDTO.Id) is not null)
-                    {
-                        var entity = await _genericRepo.GetById(subCategoryDTO.Id);
-                        var category = _mapper.Map(subCategoryDTO, entity);
-                        category.UpdatedDate = DateTime.Now;
-
-                        _genericRepo.Update(category);
-                        await _genericRepo.Commit();
-
-                        res.Success(true);
-                        return res;
-                    }
-                    res.Error(400, "SubCategory does not exist!");
-                    return res;
-                }
-                res.Error(400, "Invalid property!");
-                return res;
-            }
-            catch (Exception ex)
-            {
-                res.InternalError();
-            }
-            return res;
         }
     }
 }

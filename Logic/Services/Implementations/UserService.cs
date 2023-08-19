@@ -65,78 +65,55 @@ namespace Logic.Services.Implementations
         public async Task<GenericResponse<bool>> ConfirmEmail(string email, string token)
         {
             GenericResponse<bool> response = new GenericResponse<bool>();
+            var user = await _userManager.FindByEmailAsync(email);
 
-            try
+            if (user is not null)
             {
-                var user = await _userManager.FindByEmailAsync(email);
-
-                if (user is not null)
+                var result = await _userManager.ConfirmEmailAsync(user, token);
+                if (result.Succeeded)
                 {
-                    var result = await _userManager.ConfirmEmailAsync(user, token);
-                    if (result.Succeeded)
-                    {
-                        response.Success(true);
-                        return response;
-                    }
-                    response.Error(400, "Failed to confirm an email!");
+                    response.Success(true);
                     return response;
                 }
                 response.Error(400, "Failed to confirm an email!");
                 return response;
             }
-            catch (Exception ex)
-            {
-                response.InternalError();
-            }
+            response.Error(400, "Failed to confirm an email!");
             return response;
+
         }
 
         public async Task<GenericResponse<bool>> ForgotPassword(string email)
         {
             GenericResponse<bool> response = new GenericResponse<bool>();
 
-            try
-            {
-                var user = await _userManager.FindByEmailAsync(email);
+
+            var user = await _userManager.FindByEmailAsync(email);
 
                 if (user is not null)
                 {
                     var token = HttpUtility.UrlEncode(await _userManager.GeneratePasswordResetTokenAsync(user));
-                    var forgotPasswordLink = $"https://localhost:44381/api/User/GetResetPasswordModel?email={user.Email}&token={token}";
+                    var forgotPasswordLink = $"https://localhost:44381/api/User/GetResetPassword?email={user.Email}&token={token}";
                     var message = await _messageService.GenerateMessage(user, forgotPasswordLink);
                     await _emailService.SendEmail(message);
 
-                    response.Success(true);
-                    return response;
-                }
-                response.Error(400, "User does not exist!");
+                response.Success(true);
                 return response;
             }
-            catch (Exception ex)
-            {
-                response.InternalError();
-            }
+            response.Error(400, "User does not exist!");
             return response;
+
         }
 
         public GenericResponse<ResetPasswordDTO> GetResetPassword(string email, string token)
         {
             GenericResponse<ResetPasswordDTO> response = new GenericResponse<ResetPasswordDTO>();
-
-            try
+            var resetPasswordModel = new ResetPasswordDTO()
             {
-                var resetPasswordModel = new ResetPasswordDTO()
-                {
-                    Token = token,
-                    Email = email,
-                };
-                response.Success(resetPasswordModel);
-                return response;
-            }
-            catch (Exception ex)
-            {
-                response.InternalError();
-            }
+                Token = token,
+                Email = email,
+            };
+            response.Success(resetPasswordModel);
             return response;
         }
 
@@ -144,229 +121,181 @@ namespace Logic.Services.Implementations
         {
             GenericResponse<IEnumerable<GetUserDTO>> res = new GenericResponse<IEnumerable<GetUserDTO>>();
 
-            try
+            var users = await _userRepo.GetAll()
+            .Where(u => u.IsDeleted == false)
+            .Include(u => u.Orders)
+            .Include(u => u.Baskets)
+            .ToListAsync();
+
+            if (users is not null)
             {
-                var users = await _userRepo.GetAll()
-                .Where(u => u.IsDeleted == false)
-                .Include(u => u.Orders)
-                .Include(u => u.Baskets)
-                .ToListAsync();
+                var userDTO = _mapper.Map<IEnumerable<GetUserDTO>>(users);
 
-                if (users is not null)
-                {
-                    var userDTO = _mapper.Map<IEnumerable<GetUserDTO>>(users);
-
-                    res.Success(userDTO);
-                    return res;
-                }
-                res.Error(400, "Users do not exist!");
+                res.Success(userDTO);
                 return res;
             }
-            catch (Exception ex)
-            {
-                res.InternalError();
-            }
-
+            res.Error(400, "Users do not exist!");
             return res;
+
         }
 
         public async Task<GenericResponse<TokenContent>> Login(LoginUserDTO userDTO)
         {
             GenericResponse<TokenContent> res = new GenericResponse<TokenContent>();
             var validator = await _loginValidator.ValidateAsync(userDTO);
-            try
+
+            if (validator.IsValid)
             {
-                if (validator.IsValid)
+                var user = await _userManager.FindByEmailAsync(userDTO.Email);
+
+                if (user is not null)
                 {
-                    var user = await _userManager.FindByEmailAsync(userDTO.Email);
+                    Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(user, userDTO.Password, true, false);
 
-                    if (user is not null)
+                    if (result.Succeeded)
                     {
-                        Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(user, userDTO.Password, true, false);
+                        var tokenContent = new JWTHelper().GenerateToken(_config, user);
 
-                        if (result.Succeeded)
-                        {
-                            var tokenContent = new JWTHelper().GenerateToken(_config, user);
+                        user.RefreshToken = tokenContent.RefreshToken;
 
-                            user.RefreshToken = tokenContent.RefreshToken;
+                        await _userManager.UpdateAsync(user);
 
-                            await _userManager.UpdateAsync(user);
+                        await _tokenService.AddToken(user.Id, tokenContent.AccessToken!);
 
-                            await _tokenService.AddToken(user.Id, tokenContent.AccessToken!);
-
-                            res.Success(tokenContent);
-                            return res;
-                        }
-
-                        res.Error(400, "Email or password is not correct!");
+                        res.Success(tokenContent);
                         return res;
                     }
 
                     res.Error(400, "Email or password is not correct!");
                     return res;
                 }
-                res.Error(400, "Invalid property!");
+
+                res.Error(400, "Email or password is not correct!");
                 return res;
             }
-            catch (Exception ex)
-            {
-                res.InternalError();
-            }
-
+            res.Error(400, "Invalid property!");
             return res;
+
         }
 
         public async Task<GenericResponse<TokenContent>> RefreshTheToken(string resfreshToken)
         {
             var res = new GenericResponse<TokenContent>();
 
-            try
+            var tokenContent = await _tokenService.RefreshToken(resfreshToken);
+            if (tokenContent is not null)
             {
-                var tokenContent = await _tokenService.RefreshToken(resfreshToken);
-                if (tokenContent is not null)
-                {
-                    res.Success(tokenContent);
-                    return res;
-                }
-                res.Error(400, "Failed to generate token!");
+                res.Success(tokenContent);
                 return res;
             }
-            catch (Exception ex)
-            {
-                res.InternalError();
-            }
+            res.Error(400, "Failed to generate token!");
             return res;
+
         }
 
         public async Task<GenericResponse<bool>> Register(RegisterUserDTO userDTO)
         {
             GenericResponse<bool> res = new GenericResponse<bool>();
             var validator = await _registerValidator.ValidateAsync(userDTO);
-            try
+
+            if (validator.IsValid)
             {
-                if (validator.IsValid)
+                if (await _userManager.FindByNameAsync(userDTO.UserName) is null)
                 {
-                    if (await _userManager.FindByNameAsync(userDTO.UserName) is null)
+                    if (userDTO.Password.Equals(userDTO.PasswordConfirmation))
                     {
-                        if (userDTO.Password.Equals(userDTO.PasswordConfirmation))
+                        var user = _mapper.Map<User>(userDTO);
+                        var result = await _userManager.CreateAsync(user, userDTO.Password);
+
+                        if (result.Succeeded)
                         {
-                            var user = _mapper.Map<User>(userDTO);
-                            var result = await _userManager.CreateAsync(user, userDTO.Password);
+                            await _userManager.AddToRoleAsync(user, "User");
 
-                            if (result.Succeeded)
-                            {
-                                await _userManager.AddToRoleAsync(user, "User");
+                            var token = HttpUtility.UrlEncode(await _userManager.GenerateEmailConfirmationTokenAsync(user));
+                            var confirmEmailLink = $"https://localhost:44381/api/User/ConfirmEmail?email={user.Email}&token={token}";
+                            var message = await _messageService.GenerateMessage(user, confirmEmailLink);
+                            await _emailService.SendEmail(message);
 
-                                var token = HttpUtility.UrlEncode(await _userManager.GenerateEmailConfirmationTokenAsync(user));
-                                var confirmEmailLink = $"https://localhost:44381/api/User/ConfirmEmail?email={user.Email}&token={token}";
-                                var message = await _messageService.GenerateMessage(user, confirmEmailLink);
-                                await _emailService.SendEmail(message);
-
-                                res.Success(true);
-                                return res;
-                            }
-
-                            res.Error(400, "Failed to register");
+                            res.Success(true);
                             return res;
                         }
 
-                        res.Error(400, "Passwords do not match!");
+                        res.Error(400, "Failed to register");
                         return res;
                     }
-                    res.Error(400, $"Username {userDTO.UserName} is taken!");
+
+                    res.Error(400, "Passwords do not match!");
                     return res;
                 }
-                res.Error(400, $"Invalid property!");
+                res.Error(400, $"Username {userDTO.UserName} is taken!");
                 return res;
             }
-            catch (Exception ex)
-            {
-                res.InternalError();
-            }
+            res.Error(400, $"Invalid property!");
             return res;
+
         }
 
         public async Task<GenericResponse<bool>> ResetPassword(ResetPasswordDTO resetPasswordDTO)
         {
             GenericResponse<bool> res = new GenericResponse<bool>();
 
-            try
+            var user = await _userManager.FindByEmailAsync(resetPasswordDTO.Email);
+
+            if (user is not null)
             {
-                var user = await _userManager.FindByEmailAsync(resetPasswordDTO.Email);
-
-                if (user is not null)
+                if (resetPasswordDTO.NewPassword == resetPasswordDTO.ConfirmPassword)
                 {
-                    if (resetPasswordDTO.NewPassword == resetPasswordDTO.ConfirmPassword)
-                    {
-                        var resetPasswordResult = await _userManager
-                            .ResetPasswordAsync(user, resetPasswordDTO.Token, resetPasswordDTO.NewPassword);
+                    var resetPasswordResult = await _userManager
+                        .ResetPasswordAsync(user, resetPasswordDTO.Token, resetPasswordDTO.NewPassword);
 
-                        res.Success(true);
-                        return res;
-                    }
-                    res.Error(400, "Passwords do not match!");
+                    res.Success(true);
                     return res;
                 }
-                res.Error(400, "User does not exist!");
+                res.Error(400, "Passwords do not match!");
                 return res;
             }
-            catch (Exception ex)
-            {
-                res.InternalError();
-            }
+            res.Error(400, "User does not exist!");
             return res;
+
         }
 
         public async Task<GenericResponse<bool>> SoftDelete(string id)
         {
             var res = new GenericResponse<bool>();
 
-            try
+            if (await _userManager.FindByIdAsync(id) is not null)
             {
-                if (await _userManager.FindByIdAsync(id) is not null)
-                {
-                    var user = await _userManager.FindByIdAsync(id);
-                    user.IsDeleted = true;
+                var user = await _userManager.FindByIdAsync(id);
+                user.IsDeleted = true;
 
-                    await _userManager.UpdateAsync(user);
+                await _userManager.UpdateAsync(user);
 
-                    res.Success(true);
-                    return res;
-                }
-                res.Error(400, "User does not exist!");
+                res.Success(true);
                 return res;
             }
-            catch (Exception ex)
-            {
-                res.InternalError();
-            }
+            res.Error(400, "User does not exist!");
             return res;
+
         }
 
         public async Task<GenericResponse<bool>> Update(UpdateUserDTO userDTO)
         {
             var res = new GenericResponse<bool>();
             var validator = await _updateValidator.ValidateAsync(userDTO);
-            try
+
+            if (validator.IsValid)
             {
-                if (validator.IsValid)
-                {
-                    var entity = await _userManager.FindByIdAsync(userDTO.Id);
-                    var user = _mapper.Map(userDTO, entity);
+                var entity = await _userManager.FindByIdAsync(userDTO.Id);
+                var user = _mapper.Map(userDTO, entity);
 
-                    await _userManager.UpdateAsync(user);
+                await _userManager.UpdateAsync(user);
 
-                    res.Success(true);
-                    return res;
-                }
-                res.Error(400, "Invalid property!");
+                res.Success(true);
                 return res;
             }
-            catch (Exception ex)
-            {
-                res.InternalError();
-            }
+            res.Error(400, "Invalid property!");
             return res;
+
         }
     }
 }
