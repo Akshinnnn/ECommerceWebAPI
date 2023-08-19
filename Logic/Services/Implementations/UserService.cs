@@ -86,8 +86,6 @@ namespace Logic.Services.Implementations
         public async Task<GenericResponse<bool>> ForgotPassword(string email)
         {
             GenericResponse<bool> response = new GenericResponse<bool>();
-
-
             var user = await _userManager.FindByEmailAsync(email);
 
                 if (user is not null)
