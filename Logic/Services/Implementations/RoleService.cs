@@ -26,93 +26,60 @@ namespace Logic.Services.Implementations
         public async Task<GenericResponse<bool>> AddRole(AddRoleDTO roleDTO)
         {
             var res = new GenericResponse<bool>();
+            var role = _mapper.Map<IdentityRole>(roleDTO);
+            await _roleManager.CreateAsync(role);
 
-            try
-            {
-                var role = _mapper.Map<IdentityRole>(roleDTO);
-                await _roleManager.CreateAsync(role);
-
-                res.Success(true);
-                return res;
-            }
-            catch(Exception ex)
-            {
-                res.InternalError();
-            }
+            res.Success(true);
             return res;
+
         }
 
         public async Task<GenericResponse<bool>> DeleteRole(string name)
         {
             var res = new GenericResponse<bool>();
+            var role = await _roleManager.FindByNameAsync(name);
 
-            try
+            if (role is not null)
             {
-                var role = await _roleManager.FindByNameAsync(name);
+                await _roleManager.DeleteAsync(role);
 
-                if (role is not null)
-                {
-                    await _roleManager.DeleteAsync(role);
-
-                    res.Success(true);
-                    return res;
-                }
-                res.Error(400, "Role does not exist!");
+                res.Success(true);
                 return res;
             }
-            catch (Exception ex)
-            {
-                res.InternalError();
-            }
+            res.Error(400, "Role does not exist!");
             return res;
+
         }
 
         public async Task<GenericResponse<IEnumerable<GetRolesDTO>>> GetRoles()
         {
             var res = new GenericResponse<IEnumerable<GetRolesDTO>>();
+            var roles = await _roleManager.Roles.ToListAsync();
 
-            try
+            if (roles is not null)
             {
-                var roles = await _roleManager.Roles.ToListAsync();
-
-                if (roles is not null)
-                {
-                    var rolesDTO = _mapper.Map<IEnumerable<GetRolesDTO>>(roles);
-                    res.Success(rolesDTO);
-                    return res;
-                }
-                res.Error(400, "Roles do not exist!");
+                var rolesDTO = _mapper.Map<IEnumerable<GetRolesDTO>>(roles);
+                res.Success(rolesDTO);
                 return res;
             }
-            catch (Exception ex)
-            {
-                res.InternalError();
-            }
+            res.Error(400, "Roles do not exist!");
             return res;
+
         }
 
         public async Task<GenericResponse<bool>> UpdateRole(UpdateRoleDTO roleDTO)
         {
             var res = new GenericResponse<bool>();
+            var role = await _roleManager.FindByIdAsync(roleDTO.Id);
 
-            try
+            if (role is not null)
             {
-                var role = await _roleManager.FindByIdAsync(roleDTO.Id);
+                await _roleManager.UpdateAsync(role);
 
-                if (role is not null)
-                {
-                    await _roleManager.UpdateAsync(role);
-
-                    res.Success(true);
-                    return res;
-                }
-                res.Error(400, "Role does not exist!");
+                res.Success(true);
                 return res;
             }
-            catch (Exception ex)
-            {
-                res.InternalError();
-            }
+            res.Error(400, "Role does not exist!");
             return res;
         }
     }
