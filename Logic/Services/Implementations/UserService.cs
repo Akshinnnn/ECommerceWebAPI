@@ -95,11 +95,11 @@ namespace Logic.Services.Implementations
                     var message = await _messageService.GenerateMessage(user, forgotPasswordLink);
                     await _emailService.SendEmail(message);
 
-                response.Success(true);
+                    response.Success(true);
+                    return response;
+                }
+                response.Error(400, "User does not exist!");
                 return response;
-            }
-            response.Error(400, "User does not exist!");
-            return response;
 
         }
 

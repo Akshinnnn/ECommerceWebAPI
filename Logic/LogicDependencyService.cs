@@ -39,7 +39,8 @@ namespace Logic
             services.AddTransient<IMessageService, MessageService>();
             services.AddTransient<IEmailService, EmailService>();
             services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IRoleService, RoleService>();           
+            services.AddScoped<IRoleService, RoleService>();
+            services.AddScoped<IBasketService, BasketService>();
 
             //JWT configuration:
             services.AddAuthentication(a =>

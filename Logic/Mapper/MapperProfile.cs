@@ -13,6 +13,7 @@ using Logic.Models.DTO.UserDTO;
 using Microsoft.AspNetCore.Identity;
 using Logic.Models.DTO.RoleDTO;
 using Logic.Models.DTO.ProductionCompanyDTO;
+using Logic.Models.DTO.BasketDTO;
 
 namespace Logic.Mapper
 {
@@ -47,6 +48,9 @@ namespace Logic.Mapper
 
             CreateMap<AddRoleDTO, IdentityRole>().ReverseMap();
             CreateMap<GetRolesDTO, IdentityRole>().ReverseMap();
+
+            CreateMap<AddBasketDTO, Basket>().ReverseMap();
+            CreateMap<GetBasketDTO, Basket>().ReverseMap();
         }
     }
 }
