@@ -13,5 +13,6 @@ namespace Logic.Services
         Task<GenericResponse<bool>> AddProductToBasket(AddBasketDTO basketDTO, string userId);
         Task<GenericResponse<IEnumerable<GetBasketDTO>>> GetBasket(string userId);
         Task<GenericResponse<bool>> DeleteProductFromBasket(int id);
+        Task<GenericResponse<bool>> ClearBasket(string userId);
     }
 }

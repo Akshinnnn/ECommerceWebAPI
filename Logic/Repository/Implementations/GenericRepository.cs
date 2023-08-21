@@ -27,7 +27,7 @@ namespace Logic.Repository.Implementations
         public void Delete(int id)
         {
             var entity = Table.Find(id);
-            Table.Remove(entity);
+            Table.Remove(entity!);
         }
 
         public IQueryable<T> GetAll()

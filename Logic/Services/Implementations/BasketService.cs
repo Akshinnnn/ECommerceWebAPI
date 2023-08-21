@@ -16,18 +16,20 @@ namespace Logic.Services.Implementations
 {
     public class BasketService : IBasketService
     {
-        private readonly IGenericRepository<Basket> _basketRepo;
+        private readonly IGenericRepository<Basket> _basketGenericRepo;
+        private readonly IBasketRepository _basketRepository;
         private readonly IGenericRepository<Product> _productRepo;
         private readonly IValidator<AddBasketDTO> _basketValidator;
         private readonly IMapper _mapper;
 
         public BasketService(IGenericRepository<Basket> basketRepo, IValidator<AddBasketDTO> basketValidator,
-            IMapper mapper, IGenericRepository<Product> productRepo)
+            IMapper mapper, IGenericRepository<Product> productRepo, IBasketRepository basketRepository)
         {
-            _basketRepo= basketRepo;
-            _basketValidator= basketValidator;
-            _mapper= mapper;
+            _basketGenericRepo = basketRepo;
+            _basketValidator = basketValidator;
+            _mapper = mapper;
             _productRepo = productRepo;
+            _basketRepository = basketRepository;
         }
 
         public async Task<GenericResponse<bool>> AddProductToBasket(AddBasketDTO basketDTO, string userId)
@@ -37,7 +39,7 @@ namespace Logic.Services.Implementations
 
             if (validator.IsValid)
             {
-                var basketWithSameProduct = await _basketRepo
+                var basketWithSameProduct = await _basketGenericRepo
                     .GetByExpression(b => b.UserId == userId && b.ProductId == basketDTO.ProductId)
                     .FirstOrDefaultAsync();
 
@@ -51,8 +53,8 @@ namespace Logic.Services.Implementations
                             var basket = _mapper.Map<Basket>(basketDTO);
                             basket.UserId = userId;
 
-                            await _basketRepo.Add(basket);
-                            await _basketRepo.Commit();
+                            await _basketGenericRepo.Add(basket);
+                            await _basketGenericRepo.Commit();
 
                             res.Success(true);
                             return res;
@@ -66,8 +68,8 @@ namespace Logic.Services.Implementations
 
                 basketWithSameProduct.ProductQuantity += basketDTO.ProductQuantity;
 
-                _basketRepo.Update(basketWithSameProduct);
-                await _basketRepo.Commit();
+                _basketGenericRepo.Update(basketWithSameProduct);
+                await _basketGenericRepo.Commit();
 
                 res.Success(true);
                 return res;
@@ -77,14 +79,31 @@ namespace Logic.Services.Implementations
             return res;
         }
 
+        public async Task<GenericResponse<bool>> ClearBasket(string userId)
+        {
+            GenericResponse<bool> res = new GenericResponse<bool>();
+
+            var baskets = await _basketGenericRepo.GetByExpression(b => b.UserId == userId).ToListAsync();
+            if (baskets is not null)
+            {
+                _basketRepository.ClearBasket(b => b.UserId == userId);
+                await _basketGenericRepo.Commit();
+
+                res.Success(true);
+                return res;
+            }
+            res.Error(400, "Your basket is empty!");
+            return res;
+        }
+
         public async Task<GenericResponse<bool>> DeleteProductFromBasket(int id)
         {
             GenericResponse<bool> res = new GenericResponse<bool>();
 
-            if (await _basketRepo.GetById(id) is not null)
+            if (await _basketGenericRepo.GetById(id) is not null)
             {
-                _basketRepo.Delete(id);
-                await _basketRepo.Commit();
+                _basketGenericRepo.Delete(id);
+                await _basketGenericRepo.Commit();
 
                 res.Success(true);
                 return res;
@@ -98,7 +117,7 @@ namespace Logic.Services.Implementations
         {
             GenericResponse<IEnumerable<GetBasketDTO>> res = new GenericResponse<IEnumerable<GetBasketDTO>>();
 
-            var baskets = await _basketRepo.GetByExpression(b => b.UserId == userId).ToListAsync();
+            var baskets = await _basketGenericRepo.GetByExpression(b => b.UserId == userId).ToListAsync();
 
             if (baskets is not null)
             {
