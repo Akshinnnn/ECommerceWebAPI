@@ -9,6 +9,6 @@ namespace Logic.Services
 {
     public interface IOrderService
     {
-
+        Task<GenericResponse<bool>> AddOrder(string userId);
     }
 }

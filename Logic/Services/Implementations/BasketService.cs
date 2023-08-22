@@ -48,7 +48,7 @@ namespace Logic.Services.Implementations
                     if (await _productRepo.GetById(basketDTO.ProductId) is not null)
                     {
                         var product = await _productRepo.GetById(basketDTO.ProductId);
-                        if (product.Quantity >= basketDTO.ProductQuantity)
+                        if (basketDTO.ProductQuantity <= 10)
                         {
                             var basket = _mapper.Map<Basket>(basketDTO);
                             basket.UserId = userId;
@@ -59,7 +59,7 @@ namespace Logic.Services.Implementations
                             res.Success(true);
                             return res;
                         }
-                        res.Error(400, "There are not enough products in the stock!");
+                        res.Error(400, "You can order maximum 10 products!");
                         return res;
                     }
                     res.Error(400, "Product does not exist!");
@@ -86,8 +86,7 @@ namespace Logic.Services.Implementations
             var baskets = await _basketGenericRepo.GetByExpression(b => b.UserId == userId).ToListAsync();
             if (baskets is not null)
             {
-                _basketRepository.ClearBasket(b => b.UserId == userId);
-                await _basketGenericRepo.Commit();
+                await _basketRepository.ClearBasket(b => b.UserId == userId);
 
                 res.Success(true);
                 return res;

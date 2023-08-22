@@ -67,7 +67,7 @@ namespace Logic.Services.Implementations
             GenericResponse<bool> response = new GenericResponse<bool>();
             var user = await _userManager.FindByEmailAsync(email);
 
-            if (user is not null)
+            if (user is not null && user.IsDeleted == false)
             {
                 var result = await _userManager.ConfirmEmailAsync(user, token);
                 if (result.Succeeded)
@@ -88,7 +88,7 @@ namespace Logic.Services.Implementations
             GenericResponse<bool> response = new GenericResponse<bool>();
             var user = await _userManager.FindByEmailAsync(email);
 
-                if (user is not null)
+                if (user is not null && user.IsDeleted == false)
                 {
                     var token = HttpUtility.UrlEncode(await _userManager.GeneratePasswordResetTokenAsync(user));
                     var forgotPasswordLink = $"https://localhost:44381/api/User/GetResetPassword?email={user.Email}&token={token}";
@@ -146,7 +146,7 @@ namespace Logic.Services.Implementations
             {
                 var user = await _userManager.FindByEmailAsync(userDTO.Email);
 
-                if (user is not null)
+                if (user is not null && user.IsDeleted == false)
                 {
                     Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(user, userDTO.Password, true, false);
 
