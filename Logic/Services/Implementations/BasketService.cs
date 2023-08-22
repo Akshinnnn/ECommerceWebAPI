@@ -45,9 +45,9 @@ namespace Logic.Services.Implementations
 
                 if (basketWithSameProduct is null)
                 {
-                    if (await _productRepo.GetById(basketDTO.ProductId) is not null)
+                    var product = await _productRepo.GetById(basketDTO.ProductId);
+                    if (product is not null)
                     {
-                        var product = await _productRepo.GetById(basketDTO.ProductId);
                         if (basketDTO.ProductQuantity <= 10)
                         {
                             var basket = _mapper.Map<Basket>(basketDTO);

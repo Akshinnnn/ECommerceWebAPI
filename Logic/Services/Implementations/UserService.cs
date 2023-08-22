@@ -176,6 +176,15 @@ namespace Logic.Services.Implementations
 
         }
 
+        public async Task<GenericResponse<bool>> Logout()
+        {
+            GenericResponse<bool> res = new GenericResponse<bool>();
+
+            await _signInManager.SignOutAsync();
+            res.Success(true);
+            return res;
+        }
+
         public async Task<GenericResponse<TokenContent>> RefreshTheToken(string resfreshToken)
         {
             var res = new GenericResponse<TokenContent>();

@@ -10,6 +10,11 @@ namespace Data.Entities
 {
     public class User : IdentityUser, IDateProperties
     {
+        public User()
+        {
+            Baskets = new HashSet<Basket>();
+            Orders = new HashSet<Order>();
+        }
         public string? RefreshToken { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? UpdatedDate { get; set; }

@@ -23,14 +23,14 @@ namespace Presentation.Controllers
         [HttpPost("AddBasket")]
         public async Task<IActionResult> Add([FromBody] AddBasketDTO basketDTO)
         {
-            var res = await _basketService.AddProductToBasket(basketDTO, User.FindFirstValue("UserId")!);
+            var res = await _basketService.AddProductToBasket(basketDTO, User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             return StatusCode(res.StatusCode, res);
         }
 
         [HttpGet("GetBasket")]
         public async Task<IActionResult> Get()
         {
-            var res = await _basketService.GetBasket(User.FindFirstValue("UserId")!);
+            var res = await _basketService.GetBasket(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             return StatusCode(res.StatusCode, res);
         }
 
@@ -44,7 +44,7 @@ namespace Presentation.Controllers
         [HttpDelete("ClearBasket")]
         public async Task<IActionResult> ClearBasket()
         {
-            var res = await _basketService.ClearBasket(User.FindFirstValue("UserId")!);
+            var res = await _basketService.ClearBasket(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             return StatusCode(res.StatusCode, res);
         }
     }

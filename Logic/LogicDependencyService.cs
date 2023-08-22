@@ -47,40 +47,40 @@ namespace Logic
             services.AddScoped<IOrderService, OrderService>();
 
             //JWT configuration:
-            services.AddAuthentication(a =>
-            {
-                a.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                a.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(op =>
-            {
-                op.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    SaveSigninToken = true,
-                    ClockSkew = TimeSpan.Zero,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JWT:Key"])),
-                    ValidAudience = config["JWT:Audience"],
-                    ValidIssuer = config["JWT:Issuer"]
-                };
-                op.Events = new JwtBearerEvents
-                {
-                    /*
-                     * When validation fails this function will return completedTask
-                     * if token is expired then it will add information about expiration to the header of the response
-                     */
-                    OnAuthenticationFailed = context =>
-                    {
-                        if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
-                        {
-                            context.Response.Headers.Add("TOKEN-IS-EXPIRED", "true");
-                        }
+            //services.AddAuthentication(a =>
+            //{
+            //    a.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            //    a.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            //}).AddJwtBearer(op =>
+            //{
+            //    op.TokenValidationParameters = new TokenValidationParameters
+            //    {
+            //        ValidateIssuer = true,
+            //        ValidateAudience = true,
+            //        ValidateLifetime = true,
+            //        SaveSigninToken = true,
+            //        ClockSkew = TimeSpan.Zero,
+            //        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JWT:Key"])),
+            //        ValidAudience = config["JWT:Audience"],
+            //        ValidIssuer = config["JWT:Issuer"]
+            //    };
+            //    op.Events = new JwtBearerEvents
+            //    {
+            //        /*
+            //         * When validation fails this function will return completedTask
+            //         * if token is expired then it will add information about expiration to the header of the response
+            //         */
+            //        OnAuthenticationFailed = context =>
+            //        {
+            //            if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+            //            {
+            //                context.Response.Headers.Add("TOKEN-IS-EXPIRED", "true");
+            //            }
 
-                        return Task.CompletedTask;
-                    }
-                };
-            });
+            //            return Task.CompletedTask;
+            //        }
+            //    };
+            //});
 
             return services;
         }
