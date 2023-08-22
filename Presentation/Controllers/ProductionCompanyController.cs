@@ -1,5 +1,6 @@
 ﻿using Logic.Models.DTO.ProductionCompanyDTO;
 using Logic.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,6 +8,7 @@ namespace Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin")]
     public class ProductionCompanyController : ControllerBase
     {
         private readonly IProductionCompanyService _productionCompanyService;
@@ -24,6 +26,7 @@ namespace Presentation.Controllers
         }
 
         [HttpGet("GetCompanies")]
+        [AllowAnonymous]
         public async Task<IActionResult> Get()
         {
             var res = await _productionCompanyService.GetAll();

@@ -1,5 +1,6 @@
 ﻿using Logic.Models.DTO.ProductInfoDTO;
 using Logic.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,6 +8,7 @@ namespace Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin")]
     public class ProductInformationController : ControllerBase
     {
         private readonly IProductInfoService _productInfoService;
@@ -24,6 +26,7 @@ namespace Presentation.Controllers
         }
 
         [HttpGet("GetProductInfo")]
+        [AllowAnonymous]
         public async Task<IActionResult> Get()
         {
             var res = await _productInfoService.Get();

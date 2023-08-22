@@ -2,6 +2,7 @@
 using Logic.Models.DTO.CategoryDTO;
 using Logic.Services;
 using Logic.Validators;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,6 +10,7 @@ namespace Presentation.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin")]
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
@@ -26,6 +28,7 @@ namespace Presentation.Controllers
         }
 
         [HttpGet("GetCategories")]
+        [AllowAnonymous]
         public async Task<IActionResult> Get()
         {
             var res = await _categoryService.GetCategories();
