@@ -21,7 +21,7 @@ namespace Presentation.Controllers
         [HttpPost("MakeOrder")]
         public async Task<IActionResult> AddOrder()
         {
-            var res = await _orderService.AddOrder(User.FindFirstValue("UserId")!);
+            var res = await _orderService.AddOrder(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             return StatusCode(res.StatusCode, res);
         }
     }

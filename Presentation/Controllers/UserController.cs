@@ -56,7 +56,7 @@ namespace Presentation.Controllers
         [HttpPatch("DeleteAccount")]
         public async Task<IActionResult> SoftDelete()
         {
-            var res = await _userService.SoftDelete(User.FindFirstValue("UserId"));
+            var res = await _userService.SoftDelete(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             return StatusCode(res.StatusCode, res);
         }
 
