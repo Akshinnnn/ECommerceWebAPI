@@ -4,6 +4,11 @@ namespace Data.Entities
 {
     public class Product : BaseEntity, IDateProperties, ISoftDelete
     {
+        public Product()
+        {
+            ProductInformations = new HashSet<ProductInformation>();
+            Images = new HashSet<ProductImage>();
+        }
         public string ProductName { get; set; }
         public decimal Price { get; set; }
         public decimal? OldPrice { get; set; }

@@ -4,6 +4,10 @@ namespace Data.Entities
 {
     public class Category : BaseEntity, IDateProperties, ISoftDelete
     {
+        public Category()
+        {
+            SubCategories = new HashSet<SubCategory>();    
+        }
         public string CategoryName { get; set; }
 
         public DateTime CreatedDate { get; set; }

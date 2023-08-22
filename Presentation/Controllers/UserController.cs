@@ -39,6 +39,13 @@ namespace Presentation.Controllers
             return StatusCode(res.StatusCode, res);
         }
 
+        [HttpGet("Logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var res = await _userService.Logout();
+            return StatusCode(res.StatusCode, res);
+        }
+
         [HttpGet("GetUsers")]
         public async Task<IActionResult> GetUsers()
         {

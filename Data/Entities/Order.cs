@@ -2,6 +2,10 @@
 {
     public class Order : BaseEntity
     {
+        public Order()
+        {
+            OrderProducts = new HashSet<OrderProduct>();
+        }
         public Guid OrderNumber { get; set; }
         public int ProductQuantity { get; set; }
 

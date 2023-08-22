@@ -51,7 +51,7 @@ namespace Logic.Services.Implementations
         {
             var res = new GenericResponse<IEnumerable<GetCompanyDTO>>();
 
-            var entities = await _genericRepo.GetAll().ToListAsync();
+            var entities = await _genericRepo.GetAll().Include(c => c.Products).ToListAsync();
 
             if (entities is not null)
             {

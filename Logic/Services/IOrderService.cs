@@ -1,4 +1,5 @@
-﻿using Logic.Models.GenericResponseModel;
+﻿using Logic.Models.DTO.OrderDTO;
+using Logic.Models.GenericResponseModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,5 +11,6 @@ namespace Logic.Services
     public interface IOrderService
     {
         Task<GenericResponse<bool>> AddOrder(string userId);
+        Task<GenericResponse<IEnumerable<GetOrderDTO>>> GetOrders(string userId);
     }
 }

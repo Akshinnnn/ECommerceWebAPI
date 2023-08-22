@@ -24,5 +24,12 @@ namespace Presentation.Controllers
             var res = await _orderService.AddOrder(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             return StatusCode(res.StatusCode, res);
         }
+
+        [HttpGet("GetOrders")]
+        public async Task<IActionResult> Get()
+        {
+            var res = await _orderService.GetOrders(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            return StatusCode(res.StatusCode, res);
+        }
     }
 }

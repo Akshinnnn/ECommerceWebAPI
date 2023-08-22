@@ -4,6 +4,10 @@ namespace Data.Entities
 {
     public class ProductionCompany : BaseEntity, IDateProperties, ISoftDelete
     {
+        public ProductionCompany()
+        {
+            Products = new HashSet<Product>();
+        }
         public string CompanyName { get; set; }
 
         public DateTime CreatedDate { get; set; }
