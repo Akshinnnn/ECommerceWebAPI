@@ -1,4 +1,5 @@
-﻿using Logic.Services;
+﻿using Logic.Models.DTO.OrderDTO;
+using Logic.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +30,20 @@ namespace Presentation.Controllers
         public async Task<IActionResult> Get()
         {
             var res = await _orderService.GetOrders(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            return StatusCode(res.StatusCode, res);
+        }
+
+        [HttpPost("Refund")]
+        public async Task<IActionResult> Refund(RefundProductDTO orderDTO)
+        {
+            var res = await _orderService.RefundProduct(orderDTO,User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            return StatusCode(res.StatusCode, res);
+        }
+
+        [HttpGet("GetRefunds")]
+        public async Task<IActionResult> GetRefunds()
+        {
+            var res = await _orderService.GetRefunds(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             return StatusCode(res.StatusCode, res);
         }
     }

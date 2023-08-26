@@ -18,6 +18,7 @@ namespace Logic.Services.Implementations
         private readonly IGenericRepository<Basket> _basketGenericRepo;
         private readonly IBasketRepository _basketRepo;
         private readonly IGenericRepository<Order> _orderGenericRepo;
+        private readonly IGenericRepository<OrderProduct> _orderProductGenericRepo;
         private readonly IGenericRepository<Product> _productGenericRepo;
         private readonly IOrderRepository _orderProductRepo;
         private readonly IProductRepository _productRepo;
@@ -29,7 +30,8 @@ namespace Logic.Services.Implementations
             IProductRepository productRepo,
             IGenericRepository<Product> productGenericRepo,
             IBasketRepository basketRepo,
-            IMapper mapper)
+            IMapper mapper,
+            IGenericRepository<OrderProduct> orderProductGenericRepo)
         {
             _basketGenericRepo = basketGenericRepo;
             _orderGenericRepo = orderGenericRepo;
@@ -38,6 +40,7 @@ namespace Logic.Services.Implementations
             _productGenericRepo = productGenericRepo;
             _basketRepo = basketRepo;
             _mapper = mapper;
+            _orderProductGenericRepo = orderProductGenericRepo;
         }
 
         public async Task<GenericResponse<bool>> AddOrder(string userId)
@@ -107,6 +110,66 @@ namespace Logic.Services.Implementations
                 return res;
             }
             res.Error(400, "You do not have orders!");
+            return res;
+        }
+
+        public async Task<GenericResponse<IEnumerable<GetOrderProductDTO>>> GetRefunds(string userId)
+        {
+            GenericResponse<IEnumerable<GetOrderProductDTO>> res = new GenericResponse<IEnumerable<GetOrderProductDTO>>();
+            List<OrderProduct> refunds = new List<OrderProduct>();
+
+            var orders = await _orderGenericRepo.GetByExpression(o => o.UserId == userId).Include(o => o.OrderProducts).ToListAsync();
+            if (orders is not null)
+            {
+                foreach (var order in orders)
+                {
+                    foreach (var product in order.OrderProducts)
+                    {
+                        if (product.RefundDate is not null)
+                        {
+                            refunds.Add(product);
+                        }
+                    }
+                }
+                var refundDTO = _mapper.Map<IEnumerable<GetOrderProductDTO>>(refunds);
+
+                res.Success(refundDTO);
+                return res;
+            }
+            res.Error(400,"Order does not exist!");
+            return res;
+        }
+
+        public async Task<GenericResponse<bool>> RefundProduct(RefundProductDTO orderDTO, string userId)
+        {
+            GenericResponse<bool> res = new GenericResponse<bool>();
+
+            var order = await _orderGenericRepo.GetByExpression(o => o.UserId == userId && o.Id == orderDTO.OrderId)
+                .FirstOrDefaultAsync();
+
+            if (order is not null)
+            {
+                var product = await _orderProductGenericRepo.GetByExpression(op => op.OrderId == order.Id && op.ProductId == orderDTO.ProductId)
+                    .FirstOrDefaultAsync();
+                if (product is not null)
+                {
+                    if (DateTime.Now.Subtract(order.CreatedDate).TotalDays <= 14)
+                    {
+                        product.RefundDate = DateTime.Now;
+
+                        _orderProductGenericRepo.Update(product);
+                        await _orderProductGenericRepo.Commit();
+
+                        res.Success(true);
+                        return res;
+                    }
+                    res.Error(400, "Refund is acceptable within 14 days after the order date!");
+                    return res;
+                }
+                res.Error(400, "Product does not exist in a current order!");
+                return res;
+            }
+            res.Error(400, "Order does not exist!");
             return res;
         }
     }
