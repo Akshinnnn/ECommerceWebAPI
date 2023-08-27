@@ -5,6 +5,7 @@ using Logic.Models.DTO.UserDTO;
 using Logic.Models.EmailConfigurationModel;
 using Logic.Models.ResetPasswordModel;
 using Logic.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -47,6 +48,7 @@ namespace Presentation.Controllers
         }
 
         [HttpGet("GetUsers")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetUsers()
         {
             var res = await _userService.GetUsers();
@@ -96,6 +98,7 @@ namespace Presentation.Controllers
         }
 
         [HttpPost("ResfreshTheToken")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RefreshToken(string refreshToken)
         {
             var res = await _userService.RefreshTheToken(refreshToken);

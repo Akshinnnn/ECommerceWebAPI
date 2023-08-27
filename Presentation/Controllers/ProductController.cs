@@ -53,5 +53,26 @@ namespace Presentation.Controllers
             var res = await _productService.SoftDelete(id);
             return StatusCode(res.StatusCode, res);
         }
+
+        [HttpPost("AddProductImage")]
+        public async Task<IActionResult> AddImage([FromForm] AddImageDTO imageDTO)
+        {
+            var res = await _productService.AddImage(imageDTO);
+            return StatusCode(res.StatusCode, res);
+        }
+
+        [HttpGet("GetProductImage")]
+        public async Task<IActionResult> GetImage(int id)
+        {
+            var res = await _productService.GetProductImages(id);
+            return StatusCode(res.StatusCode, res);
+        }
+
+        [HttpDelete("DeleteProductImage")]
+        public async Task<IActionResult> DeleteImage([FromBody] DeleteImageDTO imageDTO)
+        {
+            var res = await _productService.DeleteProductImage(imageDTO);
+            return StatusCode(res.StatusCode, res);
+        }
     }
 }

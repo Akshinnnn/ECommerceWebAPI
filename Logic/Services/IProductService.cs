@@ -1,5 +1,6 @@
 ﻿using Logic.Models.DTO.ProductDTO;
 using Logic.Models.GenericResponseModel;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,5 +16,8 @@ namespace Logic.Services
         Task<GenericResponse<bool>> SoftDelete(int id);
         Task<GenericResponse<IEnumerable<GetProductDTO>>> GetProducts();
         Task<GenericResponse<GetProductDTO>> GetProductById(int id);
+        Task<GenericResponse<bool>> AddImage(AddImageDTO imageDTO);
+        Task<GenericResponse<List<string>>> GetProductImages(int id);
+        Task<GenericResponse<bool>> DeleteProductImage(DeleteImageDTO imageDTO);
     }
 }

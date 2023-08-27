@@ -5,6 +5,7 @@ using Logic.Validators;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using Presentation.Middlewares;
 using Serilog;
 using System.Reflection;
@@ -27,6 +28,12 @@ namespace Presentation
             {
                 options.SuppressModelStateInvalidFilter = true;
             });
+
+            services.AddMvc()
+                .AddNewtonsoftJson(options => 
+                { 
+                    options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore; 
+                });
 
             services.AddLogging(lb =>
             {
