@@ -17,18 +17,20 @@ namespace Logic.Services.Implementations
     public class SubCategoryService : ISubCategoryService
     {
         private readonly IGenericRepository<SubCategory> _genericRepo;
+        private readonly IGenericRepository<Category> _categoryRepo;
         private readonly IMapper _mapper;
         private readonly IValidator<AddSubCategoryDTO> _validatorAddSubCategory;
         private readonly IValidator<UpdateSubCategoryDTO> _validatorUpdateSubCategory;
 
         public SubCategoryService(IGenericRepository<SubCategory> genericRepo, IMapper mapper,
             IValidator<AddSubCategoryDTO> validatorAddSubCategory,
-            IValidator<UpdateSubCategoryDTO> validatorUpdateSubCategory)
+            IValidator<UpdateSubCategoryDTO> validatorUpdateSubCategory, IGenericRepository<Category> categoryRepo)
         {
             _genericRepo = genericRepo;
             _mapper = mapper;
             _validatorAddSubCategory = validatorAddSubCategory;
             _validatorUpdateSubCategory = validatorUpdateSubCategory;
+            _categoryRepo = categoryRepo;
         }
 
         public async Task<GenericResponse<bool>> AddSubCategory(AddSubCategoryDTO subCategoryDTO)
@@ -38,16 +40,20 @@ namespace Logic.Services.Implementations
 
             if (validator.IsValid)
             {
-                var entity = _mapper.Map<SubCategory>(subCategoryDTO);
-                await _genericRepo.Add(entity);
-                await _genericRepo.Commit();
+                if (await _categoryRepo.GetById(subCategoryDTO.CategoryId) is not null)
+                {
+                    var entity = _mapper.Map<SubCategory>(subCategoryDTO);
+                    await _genericRepo.Add(entity);
+                    await _genericRepo.Commit();
 
-                res.Success(true);
+                    res.Success(true);
+                    return res;
+                }
+                res.Error(400, "Category does not exist!");
                 return res;
             }
             res.Error(400, "Failed to add an entity!");
             return res;
-
         }
 
         public async Task<GenericResponse<IEnumerable<GetSubCategoryDTO>>> GetSubCategories()

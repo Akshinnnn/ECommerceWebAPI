@@ -21,6 +21,8 @@ namespace Logic.Services.Implementations
     {
         private readonly IGenericRepository<Product> _genericRepo;
         private readonly IGenericRepository<ProductImage> _imageGenericRepo;
+        private readonly IGenericRepository<SubCategory> _subCategoryGenericRepo;
+        private readonly IGenericRepository<ProductionCompany> _companyGenericRepo;
         private readonly IMapper _mapper;
         private readonly IValidator<AddProductDTO> _addProductValidator;
         private readonly IValidator<UpdateProductDTO> _updateProductValidator;
@@ -46,12 +48,19 @@ namespace Logic.Services.Implementations
 
             if (validator.IsValid)
             {
-                var entity = _mapper.Map<Product>(productDTO);
+                var subCategory = await _subCategoryGenericRepo.GetById(productDTO.SubCategoryId);
+                var company = await _companyGenericRepo.GetById(productDTO.ProductionCompanyId);
+                if (subCategory is not null && company is not null)
+                {
+                    var entity = _mapper.Map<Product>(productDTO);
 
-                await _genericRepo.Add(entity);
-                await _genericRepo.Commit();
+                    await _genericRepo.Add(entity);
+                    await _genericRepo.Commit();
 
-                response.Success(true);
+                    response.Success(true);
+                    return response;
+                }
+                response.Error(400, "Subcategory or company do not exist!");
                 return response;
             }
 

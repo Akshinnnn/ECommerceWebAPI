@@ -16,18 +16,20 @@ namespace Logic.Services.Implementations
     public class ProductInfoService : IProductInfoService
     {
         private readonly IGenericRepository<ProductInformation> _genericRepo;
+        private readonly IGenericRepository<Product> _productRepo;
         private readonly IMapper _mapper;
         private readonly IValidator<AddProductInfoDTO> _addInfoValidator;
         private readonly IValidator<UpdateProductInfoDTO> _updateInfoValidator;
 
         public ProductInfoService(IGenericRepository<ProductInformation> genericRepo, IMapper mapper,
             IValidator<UpdateProductInfoDTO> updateInfoValidator,
-            IValidator<AddProductInfoDTO> addInfoValidator)
+            IValidator<AddProductInfoDTO> addInfoValidator, IGenericRepository<Product> productRepo)
         {
             _genericRepo = genericRepo;
             _mapper = mapper;
             _updateInfoValidator = updateInfoValidator;
             _addInfoValidator = addInfoValidator;
+            _productRepo = productRepo;
         }
 
         public async Task<GenericResponse<bool>> Add(AddProductInfoDTO productInfoDTO)
@@ -37,12 +39,17 @@ namespace Logic.Services.Implementations
 
             if (validator.IsValid)
             {
-                var entity = _mapper.Map<ProductInformation>(productInfoDTO);
+                if (await _productRepo.GetById(productInfoDTO.ProductId) is not null)
+                {
+                    var entity = _mapper.Map<ProductInformation>(productInfoDTO);
 
-                await _genericRepo.Add(entity);
-                await _genericRepo.Commit();
+                    await _genericRepo.Add(entity);
+                    await _genericRepo.Commit();
 
-                res.Success(true);
+                    res.Success(true);
+                    return res;
+                }
+                res.Error(400, "Product does not exist!");
                 return res;
             }
             res.Error(400, "Invalid properties!");
